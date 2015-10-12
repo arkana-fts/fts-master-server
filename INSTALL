@@ -1,0 +1,91 @@
+
+
+                              -------
+                              INSTALL
+                              -------
+
+
+ Requirements
+--------------
+
+  You will need the following things for the Arkana-FTS Server to work:
+    * CMake version 3.1 or above
+    * a threading library like pthreads
+    * a working MySQL 5.x server (Tested with version 5.6)
+    * the MySQL 5.x C Client library (Tested with version 5.6)
+
+  It is known to compile in GCC 4.9
+
+ How to install the Arkana-FTS Server
+--------------------------------------
+
+  First of all, you need to create a new database user, know his password and
+  create a new database the Arkana-FTS server will use.
+
+  Next, you have to compile the server:
+  Change into the directory "build", by typing
+
+    > cd build
+
+  There you must call CMake to check your system and create the Makefiles. This
+  is also the right time to select some options of the server.
+
+  I recommend you to use a CMake GUI, like ccmake on linux systems:
+
+    > ccmake ..
+
+  There, press "c" once (configure), then customize everything you want. This
+  is also the time to type in the MySQL connection credentials.
+  Another recommendation is to set the cmake install directory to where you
+  want the server executable to reside and choose a writeable directory to
+  store the logfiles in.
+
+  When done choosing your options, press "c" again and then "g".
+
+  If everything went fine, you should now have a Makefile in your directory
+  and thus be able to run make
+
+    > make
+
+  If it all went fine, run make install in order to copy the server to the
+  location you chose beforehand.
+
+  Finally, you need to setup the database: start the mysql commandline client:
+
+    > mysql -u USERNAME -p
+
+  After entering the correct password, you get to the MySQL prompt, where you
+  have to select the database you will work on:
+
+    # use DATABASENAME
+
+  Then you can create all the tables needed by the Arkana-FTS server by just
+  running the script 'create.sql':
+
+    # source create.sql
+    # exit
+
+  That's all! don't worry if the script prints some warnings, they are known.
+
+Notes on the logfiles
+=====================
+
+  The player/games number file will be created by the server and store the
+  actual number of players logged in/games being played.
+
+  The error/actions/network logging files will also be created by the server in
+  the log directory and will keep track of encountered errors, actions done by
+  the players and network traffic respectively. Thus the two latter files may
+  become quite large, that's why you can limit their size. After reaching the
+  limit size, the file gets renamed (it gets the current datetime appended) and
+  a new one is created.
+
+  The server needs to have write access to the path you choose for those four
+  files! If the server can't access them, they will be created in the home
+  directory of the executing user. If this home directory doesn't exist or is
+  not writeable, the files will just be ignored.
+
+ Links
+-------
+
+  If you have any questions, visit the forum that you will find on the official fts page: arkana-fts.org
