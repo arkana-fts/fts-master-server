@@ -48,13 +48,13 @@ message(STATUS "${fts-network_LIB_DIR} ${fts-network_SOURCE_DIR}")
 
 # Put all sourcefiles into one variable. #
 ##########################################
-set(src main.cpp channel.cpp client.cpp db.cpp db_build.cpp dummy_types.cpp
-            game.cpp socket_connection_waiter.cpp 
+set(src main.cpp Server.cpp channel.cpp client.cpp db.cpp db_build.cpp dummy_types.cpp
+            game.cpp  
             ClientsManager.cpp ChannelManager.cpp GameManager.cpp
             GetOpt.cpp Mutex.cpp
    )
-set(HDR constants.h channel.h client.h db.h dummy_types.h
-            game.h socket_connection_waiter.h 
+set(HDR constants.h Server.h channel.h client.h db.h dummy_types.h
+            game.h  
             ClientsManager.h ChannelManager.h GameManager.h
             Singleton.h GetOpt.h Mutex.h
    ) 
@@ -133,7 +133,7 @@ endif()
 # The compiling process. #
 ##########################
 
-add_executable(fts-server ${src} ${HDR} ${FTS_UTIL_SRC} ${CHECKSUM})
+add_executable(fts-server ${src} ${HDR} ${CHECKSUM})
 set_property(TARGET fts-server PROPERTY CXX_STANDARD 14)
 set_property(TARGET fts-server PROPERTY CXX_STANDARD_REQUIRED ON)
 
