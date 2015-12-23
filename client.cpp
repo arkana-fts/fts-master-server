@@ -3,6 +3,8 @@
 #include <chrono>
 
 #include <Logger.h>
+#include <TextFormatting.h>
+#include "Server.h"
 #include "client.h"
 #include "constants.h"
 #include "db.h"
@@ -66,7 +68,7 @@ int FTSSrv2::Client::run()
 
     // Disconnect the player.
     this->quit();
-
+    Server::getSingleton().addStats( m_pConnection->getPacketStats() );
     delete this;
     return 0;
 }

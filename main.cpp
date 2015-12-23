@@ -6,32 +6,15 @@
 #include <thread>
 #include <algorithm>
 #include <numeric>
-#include <signal.h>
-#if !defined(_WIN32)
-#include <pwd.h>
-#endif
 
-#include <Logger.h>
-#include <connection.h>
-
-#include "constants.h"
-#include "db.h"
-#include "channel.h"
-#include "ClientsManager.h"
-#include "ChannelManager.h"
-#include "GameManager.h"
-#include "Mutex.h"
-#include "socket_connection_waiter.h"
-#include "GetOpt.h"
-
-#include "constants.h"
-#include "config.h"
 
 #if defined(_WIN32)
-#include <WinSock2.h>
-#pragma comment(lib, "Ws2_32.lib")
-#pragma warning (disable: 4996) // disable complaining about not ISO C++ conformant name open etc.
+#  include <WinSock2.h>
+#  pragma comment(lib, "Ws2_32.lib")
+#  pragma warning (disable: 4996) // disable complaining about not ISO C++ conformant name open etc.
 #else
+#  include <signal.h>
+#  include <pwd.h>
 #  include <mysql/mysql.h>
 
 #  include <sys/select.h>
@@ -48,8 +31,23 @@
 #  include <fcntl.h>
 #  include <errno.h>
 #  include <malloc.h>
-
 #endif
+
+#include <Logger.h>
+#include <connection.h>
+#include <connection_waiter.h>
+
+#include "Server.h"
+#include "constants.h"
+#include "db.h"
+#include "channel.h"
+#include "client.h"
+#include "ClientsManager.h"
+#include "ChannelManager.h"
+#include "GameManager.h"
+#include "Mutex.h"
+#include "GetOpt.h"
+#include "config.h"
 
 
 /* Change this to whatever your daemon is called */
@@ -110,7 +108,7 @@ int main(int argc, char *argv[])
     int iResult = WSAStartup( MAKEWORD( 2, 2 ), &wsaData );
     if ( iResult != NO_ERROR )
     {
-        fprintf(stdout, "WSAStartup failed with error: %ld\n", iResult );
+        std::cout << "WSAStartup failed with error: " << iResult << "\n";
         return 1;
     }
 #endif
@@ -231,6 +229,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    new Server(logdir, bVerbose, dbgLevel);
     new ChannelManager();
     ChannelManager::getManager()->init();
     new ClientsManager();
@@ -243,7 +242,7 @@ int main(int argc, char *argv[])
     // DEBUG: the +1 at the end.
     std::vector<std::thread> threads;
 
-    for(uint16_t i = DSRV_PORT_FIRST; i < DSRV_PORT_LAST + 1; i++)
+    for(uint16_t i = DSRV_PORT_FIRST; i < DSRV_PORT_FIRST /*DSRV_PORT_LAST*/ + 1; i++)
         threads.emplace_back( connectionListener, i );
 
     // Here we access directly to it, because we just read it, so there's no danger (I hope)
@@ -274,31 +273,30 @@ int main(int argc, char *argv[])
                 g_bExit = true;
                 break;
             } else if( cmd == "nplayers" ) {
-                //size_t nPlayers = dynamic_cast< ServerLogger * >(FTS::Logger::getSingletonPtr())->getPlayerCount();
-                //FTSMSGDBG( "Number of players that are logged in: " + toString( nPlayers ), 1 );
+                size_t nPlayers = FTSSrv2::Server::getSingletonPtr()->getPlayerCount();
+                FTSMSGDBG( "Number of players that are logged in: " + toString( nPlayers ), 1 );
             } else if( cmd == "ngames" ) {
-                //size_t nGames = dynamic_cast< ServerLogger * >(FTS::Logger::getSingletonPtr())->getGameCount();
-                //FTSMSGDBG( "Number of games that are opened: " + toString( nGames ), 1 );
+                size_t nGames = FTSSrv2::Server::getSingletonPtr()->getGameCount();
+                FTSMSGDBG( "Number of games that are opened: " + toString( nGames ), 1 );
             } else if( cmd == "version" ) {
                 FTSMSGDBG( "The version of the server is " D_SERVER_VERSION_STR, 1 );
             } else if( cmd == "verbose" ) {
                 auto arg = getNextToken( sb );
                 std::transform( arg.begin(), arg.end(), arg.begin(), ::tolower ); // Thanks to SO
                 if( arg == "on" ) {
-                    //bool bOld = dynamic_cast< ServerLogger * >(FTS::Logger::getSingletonPtr())->setVerbose( true );
-                    //FTSMSGDBG( "Verbose mode was " + string( bOld ? "on" : "off" ) + ", now it is on.", 1 );
+                    bool bOld = FTSSrv2::Server::getSingletonPtr()->setVerbose( true );
+                    FTSMSGDBG( "Verbose mode was " + string( bOld ? "on" : "off" ) + ", now it is on.", 1 );
                 } else if( arg == "off" ) {
-                    //bool bOld = dynamic_cast< ServerLogger * >(FTS::Logger::getSingletonPtr())->setVerbose( false );
-                    //FTSMSGDBG( "Verbose mode was " + string( bOld ? "on" : "off" ) + ", now it is off.", 1 );
-                    //FTSMSG( "Verbose mode was " + string( bOld ? "on" : "off" ) + ", now it is off.", MsgType::Message );
+                    bool bOld = FTSSrv2::Server::getSingletonPtr()->setVerbose( false );
+                    FTSMSG( "Verbose mode was " + string( bOld ? "on" : "off" ) + ", now it is off.", MsgType::Message );
                 } else {
-                    //bool b = dynamic_cast< ServerLogger * >(FTS::Logger::getSingletonPtr())->getVerbose();
-                    //FTSMSG( "Verbose mode is currently " + string( b ? "on" : "off" ), MsgType::Message );
+                    bool b = FTSSrv2::Server::getSingletonPtr()->getVerbose();
+                    FTSMSG( "Verbose mode is currently " + string( b ? "on" : "off" ), MsgType::Message );
                 }
             } else if( cmd == "stats" ) {
                 printServerStats();
             } else if( cmd == "clearstats" ) {
-                //dynamic_cast< FTSSrv2::ServerLogger* >(FTS::Logger::getSingletonPtr())->clearStats();
+                FTSSrv2::Server::getSingletonPtr()->clearStats();
             } else {
                 FTSMSG( "Unknown command '" + string( cmd ) + "', u n00b, try typing 'help' to get some help.", MsgType::Error );
             }
@@ -337,23 +335,24 @@ int main(int argc, char *argv[])
     }
 
     FTSMSGDBG("Everything done, bye\n", 1);
-
+    delete Server::getSingletonPtr();
     return EXIT_SUCCESS;
 }
 
 void printServerStats()
 {
-    //auto totals = dynamic_cast< FTSSrv2::ServerLogger* >(FTS::Logger::getSingletonPtr())->getStatTotalPackets();
-    //FTSMSGDBG( " ", 1 );
-    //FTSMSGDBG( "Req No    Snd  Recv", 1 );
-    //FTSMSGDBG( "---------+----+----+", 1 );
-    //for( const auto& kv : totals ) {
-    //    FTSMSGDBG( "req {1}   |{2}|{3}| ", 1, toString( kv.first, 2, ' ' ), toString( kv.second.first, 4, ' ' ), toString( kv.second.second, 4, ' ' ) );
-    //}
-    //FTSMSGDBG( "---------+----+----+", 1 );
-    //int totalSend = std::accumulate( std::begin( totals ), std::end( totals ), 0, [] ( int sum, const std::pair<int, std::pair<int, int>>& p ) { return sum + p.second.first; } );
-    //int totalRecv = std::accumulate( std::begin( totals ), std::end( totals ), 0, [] ( int sum, const std::pair<int, std::pair<int, int>>& p ) { return sum + p.second.second; } );
-    //FTSMSGDBG( "Totals   |{1}|{2}|", 1, toString( totalSend, 4, ' ' ), toString( totalRecv, 4, ' ' ) );
+    auto totals = FTSSrv2::Server::getSingletonPtr()->getStatTotalPackets();
+    FTSMSGDBG( " ", 1 );
+    FTSMSGDBG( "Req No    Snd  Recv", 1 );
+    FTSMSGDBG( "---------+----+----+", 1 );
+    for( const auto& kv : totals ) {
+        FTSMSGDBG( "req {1}   |{2}|{3}| ", 1, toString( (int)kv.first, 2, ' ' ), toString( kv.second.first, 4, ' ' ), toString( kv.second.second, 4, ' ' ) );
+    }
+    FTSMSGDBG( "---------+----+----+", 1 );
+    using kvstat = std::pair<master_request_t, std::pair<uint64_t, uint64_t>>;
+    int totalSend = std::accumulate( std::begin( totals ), std::end( totals ), 0, [] ( uint64_t sum, const kvstat& p ) { return sum + p.second.second; } );
+    int totalRecv = std::accumulate( std::begin( totals ), std::end( totals ), 0, [] ( uint64_t sum, const kvstat& p ) { return sum + p.second.first; } );
+    FTSMSGDBG( "Totals   |{1}|{2}|", 1, toString( totalSend, 4, ' ' ), toString( totalRecv, 4, ' ' ) );
 }
 
 // Display some help.
@@ -433,10 +432,10 @@ void help(const string& topic, char *in_pszMe)
         std::cout << "\n";
         std::cout << "FILES:\n";
         std::cout << "All files are located in the current working directory.\n";
-        //std::cout << "  " << dynamic_cast<ServerLogger *>(FTS::Logger::getSingletonPtr())->getLogfilename() << " contains a lot of logging messages." << std::endl;
-        //std::cout << "  " << dynamic_cast<ServerLogger *>(FTS::Logger::getSingletonPtr())->getErrfilename() << " contains all error messages that happened." << std::endl;
-        //std::cout << "  " << dynamic_cast<ServerLogger *>(FTS::Logger::getSingletonPtr())->getPlayersfilename() << " contains the number of players actually connected." << std::endl;
-        //std::cout << "  " << dynamic_cast<ServerLogger *>(FTS::Logger::getSingletonPtr())->getGamesfilename() << " contains the number of games actually opened." << std::endl;
+        std::cout << "  " << FTSSrv2::Server::getSingletonPtr()->getLogfilename() << " contains a lot of logging messages." << std::endl;
+        std::cout << "  " << FTSSrv2::Server::getSingletonPtr()->getErrfilename() << " contains all error messages that happened." << std::endl;
+        std::cout << "  " << FTSSrv2::Server::getSingletonPtr()->getPlayersfilename() << " contains the number of players actually connected." << std::endl;
+        std::cout << "  " << FTSSrv2::Server::getSingletonPtr()->getGamesfilename() << " contains the number of games actually opened." << std::endl;
     }
     srvFlush(stdout);
 }
@@ -444,11 +443,24 @@ void help(const string& topic, char *in_pszMe)
 // This sets up everything to listen on a certain port, and then goes listen.
 void connectionListener(uint16_t in_iPort)
 {
-    auto pWaiter = std::make_unique<SocketConnectionWaiter>();
+    auto startClient = [in_iPort](FTS::Connection* pCon) 
+    {
+        Client *pCli = ClientsManager::getManager()->createClient( pCon );
+        if( pCli == nullptr ) {
+            FTSMSG( "[ERROR] Can't create client, may be it exists already. Port<" + toString( (int) in_iPort, 0, ' ', std::ios::hex ) + "> con<" + toString( (const uint64_t) pCon, 4, '0', std::ios_base::hex ) + ">", MsgType::Error );
+        }
 
-    if( ERR_OK != pWaiter->init(in_iPort) )
+        FTSMSGDBG( "Accept connection on port 0x" + toString( (int) in_iPort, 0, ' ', std::ios::hex ) + " client<" + toString( (const uint64_t) pCli, 4, '0', std::ios_base::hex ) + "> con<" + toString( (const uint64_t) pCon, 4, '0', std::ios_base::hex ) + ">", 4 );
+
+        // And start a new thread for him.
+        auto thr = std::thread( Client::starter, pCli );
+        thr.detach();
+    };
+
+    auto pWaiter = std::unique_ptr<FTS::ConnectionWaiter>( FTS::ConnectionWaiter::create(FTS::ConnectionWaiter::ConnectionType::SOCKET) );
+
+    if( ERR_OK != pWaiter->init(in_iPort, startClient) )
         return ;
-
 
     // wait for connections unless we need to quit.
     while(!g_bExit) {
