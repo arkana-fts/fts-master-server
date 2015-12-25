@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
     // DEBUG: the +1 at the end.
     std::vector<std::thread> threads;
 
-    for(uint16_t i = DSRV_PORT_FIRST; i < DSRV_PORT_FIRST /*DSRV_PORT_LAST*/ + 1; i++)
+    for(uint16_t i = DSRV_PORT_FIRST; i < DSRV_PORT_LAST + 1; i++)
         threads.emplace_back( connectionListener, i );
 
     // Here we access directly to it, because we just read it, so there's no danger (I hope)
