@@ -9,7 +9,6 @@
 
 namespace FTSSrv2
 {
-using TotalStatPackets = std::unordered_map< int, std::pair<int, int> >;
 
 class Server : public FTS::Singleton<Server>
 {
@@ -42,8 +41,8 @@ protected:
     /// Protect from copying.
     Server(const Server&) = delete;
 
-    size_t m_nPlayers;          ///< Number of players logged in.
-    size_t m_nGames;            ///< Number of games currently opened.
+    size_t m_nPlayers = 0 ;     ///< Number of players logged in.
+    size_t m_nGames = 0;        ///< Number of games currently opened.
 
     FTS::Mutex m_mutex;         ///< Protects from threaded calls.
     std::string m_sErrFile;     ///< The file to write error messages to.
@@ -51,9 +50,9 @@ protected:
     std::string m_sNetLogFile;  ///< The file to log network traffic to.
     std::string m_sPlayersFile; ///< The file to write the actual player count to.
     std::string m_sGamesFile;   ///< The file to write the actual games count to.
-    bool m_bDaemon;             ///< Whether I'm started as a daemon or not.
-    bool m_bVerbose;            ///< Whether I'm verbose or not.
-    int m_dbgLvl;               ///< All debug message must have a level .lt. this to be printed.
+    bool m_bDaemon = false;     ///< Whether I'm started as a daemon or not.
+    bool m_bVerbose = false;    ///< Whether I'm verbose or not.
+    int m_dbgLvl = 0;           ///< All debug message must have a level .lt. this to be printed.
 private:
     std::string tryFile(const std::string &in_sFilename, const std::string &in_sDir) const;
 
