@@ -11,30 +11,30 @@ public:
    virtual ~TestSingleton() {};
 };
 
-class TestSingletonFixure
+class TestSingletonFixture
 {
 public:
-    TestSingletonFixure() {}
-    ~TestSingletonFixure()
+    TestSingletonFixture() {}
+    ~TestSingletonFixture()
     {
         delete TestSingleton::getSingletonPtr();
     }
 };
 
-TEST_CASE_METHOD(TestSingletonFixure, "Create Test Singleton", "[Singleton]")
+TEST_CASE_METHOD(TestSingletonFixture, "Create Test Singleton", "[Singleton]")
 {
     new TestSingleton();
     REQUIRE( TestSingleton::getSingletonPtr() != nullptr );
 }
 
-TEST_CASE_METHOD( TestSingletonFixure, "Create Test Singleton twice", "[Singleton]" )
+TEST_CASE_METHOD( TestSingletonFixture, "Create Test Singleton twice", "[Singleton]" )
 {
     new TestSingleton();
     REQUIRE( TestSingleton::getSingletonPtr() != nullptr );
     REQUIRE_THROWS( new TestSingleton() );
 }
 
-TEST_CASE_METHOD( TestSingletonFixure, "Create and destroy Test Singleton", "[Singleton]" )
+TEST_CASE_METHOD( TestSingletonFixture, "Create and destroy Test Singleton", "[Singleton]" )
 {
     REQUIRE( TestSingleton::getSingletonPtr() == nullptr );
     REQUIRE_NOTHROW( new TestSingleton() );
