@@ -4,6 +4,7 @@
 #include "../Server.h"
 
 using namespace FTS;
+using namespace std;
 
 class TestServer : public FTSSrv2::Server
 {
@@ -12,23 +13,23 @@ public:
    virtual ~TestServer() {};
 };
 
-class TestServerFixure
+class TestServerFixture
 {
 public:
-    TestServerFixure() {}
-    ~TestServerFixure()
+    TestServerFixture() {}
+    ~TestServerFixture()
     {
         delete TestServer::getSingletonPtr();
     }
 };
 
-TEST_CASE_METHOD(TestServerFixure, "Create Singleton class Server", "[Server]")
+TEST_CASE_METHOD(TestServerFixture, "Create Singleton class Server", "[Server]")
 {
     new TestServer("",false,0);
     REQUIRE( TestServer::getSingletonPtr() != nullptr );
 }
 
-TEST_CASE_METHOD( TestServerFixure, "Create Singleton class Server with log dir", "[Server]" )
+TEST_CASE_METHOD( TestServerFixture, "Create Singleton class Server with log dir", "[Server]" )
 {
     new TestServer( ".", false, 0 );
     REQUIRE( TestServer::getSingletonPtr() != nullptr );
@@ -37,7 +38,7 @@ TEST_CASE_METHOD( TestServerFixure, "Create Singleton class Server with log dir"
     REQUIRE( TestServer::getSingleton().getDbgLevel() == 0 );
 }
 
-TEST_CASE_METHOD( TestServerFixure, "Create with log dir and verbose on", "[Server]" )
+TEST_CASE_METHOD( TestServerFixture, "Create with log dir and verbose on", "[Server]" )
 {
     new TestServer( ".", true, 0 );
     REQUIRE( TestServer::getSingletonPtr() != nullptr );
@@ -46,7 +47,7 @@ TEST_CASE_METHOD( TestServerFixure, "Create with log dir and verbose on", "[Serv
     REQUIRE( TestServer::getSingleton().getDbgLevel() == 0 );
 }
 
-TEST_CASE_METHOD( TestServerFixure, "Create with log dir, verbose off and DbgLevel ", "[Server]" )
+TEST_CASE_METHOD( TestServerFixture, "Create with log dir, verbose off and DbgLevel ", "[Server]" )
 {
     new TestServer( ".", false, 4 );
     REQUIRE( TestServer::getSingletonPtr() != nullptr );
@@ -55,7 +56,7 @@ TEST_CASE_METHOD( TestServerFixure, "Create with log dir, verbose off and DbgLev
     REQUIRE( TestServer::getSingleton().getDbgLevel() == 4 );
 }
 
-TEST_CASE_METHOD( TestServerFixure, "Check members default initialization", "[Server]" )
+TEST_CASE_METHOD( TestServerFixture, "Check members default initialization", "[Server]" )
 {
     new TestServer( ".", false, 4 );
     REQUIRE( TestServer::getSingletonPtr() != nullptr );
@@ -69,7 +70,7 @@ TEST_CASE_METHOD( TestServerFixure, "Check members default initialization", "[Se
     REQUIRE( TestServer::getSingleton().getNetLogfilename() == "./fts_server.netlog" );
 }
 
-TEST_CASE_METHOD( TestServerFixure, "Setting members", "[Server]" )
+TEST_CASE_METHOD( TestServerFixture, "Setting members", "[Server]" )
 {
     new TestServer( ".", false, 0 );
     REQUIRE( TestServer::getSingletonPtr() != nullptr );
@@ -96,7 +97,7 @@ TEST_CASE_METHOD( TestServerFixure, "Setting members", "[Server]" )
     REQUIRE( server->getDbgLevel() == 0 );
 }
 
-TEST_CASE_METHOD( TestServerFixure, "Testing Game members", "[Server]" )
+TEST_CASE_METHOD( TestServerFixture, "Testing Game members", "[Server]" )
 {
     new TestServer( ".", false, 0 );
     REQUIRE( TestServer::getSingletonPtr() != nullptr );
@@ -119,7 +120,7 @@ TEST_CASE_METHOD( TestServerFixure, "Testing Game members", "[Server]" )
     }
 }
 
-TEST_CASE_METHOD( TestServerFixure, "Testing player members", "[Server]" )
+TEST_CASE_METHOD( TestServerFixture, "Testing player members", "[Server]" )
 {
     new TestServer( ".", false, 0 );
     REQUIRE( TestServer::getSingletonPtr() != nullptr );
@@ -142,7 +143,7 @@ TEST_CASE_METHOD( TestServerFixure, "Testing player members", "[Server]" )
     }
 }
 
-TEST_CASE_METHOD( TestServerFixure, "Testing statistics methods", "[Server]" )
+TEST_CASE_METHOD( TestServerFixture, "Testing statistics methods", "[Server]" )
 {
     new TestServer( ".", false, 0 );
     REQUIRE( TestServer::getSingletonPtr() != nullptr );
@@ -157,8 +158,8 @@ TEST_CASE_METHOD( TestServerFixure, "Testing statistics methods", "[Server]" )
     REQUIRE( stats.count( 1 ) == 1 );
     REQUIRE( stats.count( 2 ) == 1 );
     REQUIRE( stats.count( 10 ) == 0 );
-    REQUIRE( stats[1] == std::make_pair(10ULL,20ULL) );
-    REQUIRE( stats[2] == std::make_pair( 1ULL, 2ULL ) );
+    REQUIRE( stats[1] == std::make_pair((uint64_t)10, (uint64_t) 20) );
+    REQUIRE( stats[2] == std::make_pair((uint64_t) 1, (uint64_t)2 ) );
     server->clearStats();
     stats = server->getStatTotalPackets();
     REQUIRE( stats.size() == 0 );
