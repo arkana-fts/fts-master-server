@@ -24,7 +24,7 @@ std::string FTSSrv2::Server::tryFile(const std::string &in_sFilename, const std:
     std::string sDir = in_sDir;
 
     // Add a trailing slash if needed.
-    if(sDir[sDir.length() - 1] != '/') {
+    if( sDir.length() > 0 && sDir.rfind('/') == std::string::npos ) {
         sDir += "/";
     }
 
