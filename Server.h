@@ -58,7 +58,7 @@ protected:
     bool m_bVerbose;            ///< Whether I'm verbose or not.
     int m_dbgLvl;               ///< All debug message must have a level .lt. this to be printed.
 private:
-    std::string FTSSrv2::Server::tryFile(const std::string &in_sFilename, const std::string &in_sDir) const;
+    std::string tryFile(const std::string &in_sFilename, const std::string &in_sDir) const;
 
     PacketStats m_totalPackets;
 };
