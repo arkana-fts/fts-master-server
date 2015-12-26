@@ -35,7 +35,7 @@ public:
 
     inline bool getVerbose() const { return m_bVerbose; };
     inline bool setVerbose(bool in_b) { bool bOld = m_bVerbose; m_bVerbose = in_b; return bOld; };
-    inline int  geDbgLevel() const { return m_dbgLvl; }
+    inline int  getDbgLevel() const { return m_dbgLvl; }
     inline int  setDbgLevel(int dbgLvl) { int oldDbgLvl = m_dbgLvl; m_dbgLvl = dbgLvl; return oldDbgLvl; }
 
 protected:

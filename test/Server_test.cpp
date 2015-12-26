@@ -33,7 +33,7 @@ TEST_CASE_METHOD( TestServerFixure, "Create Singleton class Server with log dir"
     REQUIRE( TestServer::getSingletonPtr() != nullptr );
     REQUIRE( TestServer::getSingleton().getLogfilename() == "./fts_server.log" );
     REQUIRE( TestServer::getSingleton().getVerbose() == false );
-    REQUIRE( TestServer::getSingleton().geDbgLevel() == 0 );
+    REQUIRE( TestServer::getSingleton().getDbgLevel() == 0 );
 }
 
 TEST_CASE_METHOD( TestServerFixure, "Create with log dir and verbose on", "[Server]" )
@@ -42,7 +42,7 @@ TEST_CASE_METHOD( TestServerFixure, "Create with log dir and verbose on", "[Serv
     REQUIRE( TestServer::getSingletonPtr() != nullptr );
     REQUIRE( TestServer::getSingleton().getLogfilename() == "./fts_server.log" );
     REQUIRE( TestServer::getSingleton().getVerbose() == true );
-    REQUIRE( TestServer::getSingleton().geDbgLevel() == 0 );
+    REQUIRE( TestServer::getSingleton().getDbgLevel() == 0 );
 }
 
 TEST_CASE_METHOD( TestServerFixure, "Create with log dir, verbose off and DbgLevel ", "[Server]" )
@@ -51,7 +51,7 @@ TEST_CASE_METHOD( TestServerFixure, "Create with log dir, verbose off and DbgLev
     REQUIRE( TestServer::getSingletonPtr() != nullptr );
     REQUIRE( TestServer::getSingleton().getLogfilename() == "./fts_server.log" );
     REQUIRE( TestServer::getSingleton().getVerbose() == false );
-    REQUIRE( TestServer::getSingleton().geDbgLevel() == 4 );
+    REQUIRE( TestServer::getSingleton().getDbgLevel() == 4 );
 }
 
 TEST_CASE_METHOD( TestServerFixure, "Create and check members", "[Server]" )
@@ -60,7 +60,7 @@ TEST_CASE_METHOD( TestServerFixure, "Create and check members", "[Server]" )
     REQUIRE( TestServer::getSingletonPtr() != nullptr );
     REQUIRE( TestServer::getSingleton().getLogfilename() == "./fts_server.log" );
     REQUIRE( TestServer::getSingleton().getVerbose() == false );
-    REQUIRE( TestServer::getSingleton().geDbgLevel() == 4 );
+    REQUIRE( TestServer::getSingleton().getDbgLevel() == 4 );
     REQUIRE( TestServer::getSingleton().getPlayersfilename() == "./nplayers.txt" );
     REQUIRE( TestServer::getSingleton().getGamesfilename() == "./ngames.txt" );
 }
