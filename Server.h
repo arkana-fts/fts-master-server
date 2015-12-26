@@ -7,8 +7,6 @@
 #include "Singleton.h"
 #include "Mutex.h"
 
-namespace FTS { class Connection; }
-
 namespace FTSSrv2
 {
 using TotalStatPackets = std::unordered_map< int, std::pair<int, int> >;
@@ -31,7 +29,6 @@ public:
     size_t addGame(void);
     size_t remGame(void);
     inline size_t getGameCount(void) const { return m_nGames; };
-    void addConnection( FTS::Connection* in_pCon );
     void clearStats();
     void addStats( PacketStats stats);
     PacketStats getStatTotalPackets();
