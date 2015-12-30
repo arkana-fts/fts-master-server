@@ -1,8 +1,8 @@
 /**
- * \file threading.cpp
+ * \file Mutex.cpp
  * \author Pompei2
  * \date unknown (very old)
- * \brief This file implements everything that has to do with threading.
+ * \brief This file implements everything that has to do with locking.
  **/
 
 #include "Mutex.h"

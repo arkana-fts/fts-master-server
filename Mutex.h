@@ -1,8 +1,8 @@
 /**
- * \file threading.cpp
+ * \file Mutex.h
  * \author Pompei2
  * \date unknown (very old)
- * \brief This file declares everything that has to do with threading.
+ * \brief This file declares everything that has to do with locking.
  **/
 
 #ifndef D_THREADING_H
@@ -11,10 +11,7 @@
 
 namespace FTS {
 
-class Lock;
-
 class Mutex {
-    friend class Lock;
     std::recursive_mutex m_mtx;
 
 public:
