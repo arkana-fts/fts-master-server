@@ -36,7 +36,7 @@ private:
 
     std::list<std::string>m_lpPlayers;   ///< The players that are currently in this game.
 
-    FTS::Mutex m_mutex;  ///< A mutex to protect myself.
+    Mutex m_mutex;  ///< A mutex to protect myself.
 
 public:
     Game(const std::string &in_sCreater, const std::string &in_sCreaterIP, const std::string &in_sGameName, FTS::Packet *out_pPacket);

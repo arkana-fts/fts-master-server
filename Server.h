@@ -44,7 +44,7 @@ protected:
     size_t m_nPlayers = 0 ;     ///< Number of players logged in.
     size_t m_nGames = 0;        ///< Number of games currently opened.
 
-    FTS::Mutex m_mutex;         ///< Protects from threaded calls.
+    Mutex m_mutex;         ///< Protects from threaded calls.
     std::string m_sErrFile;     ///< The file to write error messages to.
     std::string m_sLogFile;     ///< The file to write logging messages to.
     std::string m_sNetLogFile;  ///< The file to log network traffic to.

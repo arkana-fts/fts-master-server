@@ -15,7 +15,7 @@ namespace FTSSrv2 {
     {
     private:
         std::list<Channel *>m_lpChannels; ///< This list contains all existing channels.
-        FTS::Mutex m_mutex; ///< Mutex for accessing me.
+        Mutex m_mutex; ///< Mutex for accessing me.
 
     public:
         ChannelManager();

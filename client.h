@@ -20,13 +20,13 @@ namespace FTSSrv2 {
 
 class Client {
 private:
-    bool m_bLoggedIn;           ///< Whether the user is logged in or not.
+    bool m_bLoggedIn;               ///< Whether the user is logged in or not.
     std::string m_sNick;            ///< The nickname of the user that is logged on.
     std::string m_sPassMD5;         ///< The MD5 encoded password of the user that is logged on.
 
-    Game *m_pMyGame;           ///< The game I have started or I am in. NULL else.
-    Channel *m_pMyChannel;     ///< The chat channel the player is currently in.
-    FTS::Mutex m_mutex;        ///< Protect the sendPacket, it is used by other clients to send a msg directly.
+    Game *m_pMyGame;                ///< The game I have started or I am in. NULL else.
+    Channel *m_pMyChannel;          ///< The chat channel the player is currently in.
+    Mutex m_mutex;                  ///< Protect the sendPacket, it is used by other clients to send a msg directly.
     FTS::Connection *m_pConnection; ///< The connection to my client.
 
 public:

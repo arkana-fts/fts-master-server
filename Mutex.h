@@ -9,7 +9,7 @@
 #define D_THREADING_H
 #include <mutex>
 
-namespace FTS {
+namespace FTSSrv2 {
 
 class Mutex {
     std::recursive_mutex m_mtx;

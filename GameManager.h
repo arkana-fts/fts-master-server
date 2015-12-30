@@ -18,7 +18,7 @@ namespace FTSSrv2 {
     {
     private:
         std::list<Game *>m_lpGames; ///< This list contains all existing games.
-        FTS::Mutex m_mutex; ///< Mutex for accessing me.
+        Mutex m_mutex; ///< Mutex for accessing me.
 
     public:
         GameManager() = default;

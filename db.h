@@ -18,7 +18,7 @@ class DataBase {
 private:
     MYSQL *m_pSQL;
 
-    FTS::Mutex m_mutex;
+    Mutex m_mutex;
 
     static std::string m_psTblUsrFields[DSRV_TBL_USR_COUNT];
     static std::string m_psTblChansFields[DSRV_TBL_CHANS_COUNT];

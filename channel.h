@@ -24,7 +24,7 @@ private:
     std::list<std::string>m_lsOperators; ///< The names of the operators of this channel.
     std::list<Client *>m_lpUsers;   ///< The users that are currently in this channel.
 
-    FTS::Mutex m_mutex; ///< Mutex for accessing me.
+    Mutex m_mutex; ///< Mutex for accessing me.
 
 public:
     Channel(int in_iID,

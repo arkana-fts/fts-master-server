@@ -8,35 +8,34 @@
 #include "Mutex.h"
 #include <mutex>
 
-using namespace FTS;
+namespace FTSSrv2 {
 
-FTS::Mutex::Mutex()
+Mutex::Mutex()
+{}
+
+Mutex::~Mutex()
+{}
+
+void Mutex::lock()
 {
+   m_mtx.lock();
 }
 
-FTS::Mutex::~Mutex()
+void Mutex::unlock()
 {
+   m_mtx.unlock();
 }
 
-void FTS::Mutex::lock()
+Lock::Lock( Mutex& in_m )
+   : m( in_m )
 {
-    m_mtx.lock();
+   m.lock();
 }
 
-void FTS::Mutex::unlock()
+Lock::~Lock()
 {
-    m_mtx.unlock();
+   m.unlock();
 }
 
-FTS::Lock::Lock(Mutex& in_m)
-    : m(in_m)
-{
-    m.lock();
 }
-
-FTS::Lock::~Lock()
-{
-    m.unlock();
-}
-
  /* EOF */

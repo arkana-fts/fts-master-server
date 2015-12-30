@@ -20,7 +20,7 @@ namespace FTSSrv2 {
     {
     private:
         std::map<std::string, Client *>m_mClients;
-        FTS::Mutex m_mutex;
+        Mutex m_mutex;
     protected:
     public:
         ClientsManager();
