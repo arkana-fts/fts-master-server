@@ -51,7 +51,7 @@ message(STATUS "${fts-network_LIB_DIR} ${fts-network_SOURCE_DIR}")
 set(src main.cpp Server.cpp channel.cpp client.cpp db.cpp db_build.cpp dummy_types.cpp
             game.cpp  
             ClientsManager.cpp ChannelManager.cpp GameManager.cpp
-            GetOpt.cpp Mutex.cpp
+            GetOpt.cpp
    )
 set(HDR constants.h Server.h channel.h client.h db.h dummy_types.h
             game.h  

@@ -15,20 +15,18 @@ class Mutex {
     std::recursive_mutex m_mtx;
 
 public:
-    Mutex();
-    virtual ~Mutex();
+    Mutex() = default;
+    ~Mutex() = default;
 
-    void lock();
-    void unlock();
-
+    void lock() { m_mtx.lock(); }
+    void unlock() { m_mtx.unlock(); }
 };
 
 class Lock {
-protected:
     Mutex& m;
 public:
-    Lock(Mutex& m);
-    ~Lock();
+    Lock(Mutex& m) : m( m ) { m.lock(); }
+    ~Lock() { m.unlock(); }
 };
 
 } // namespace FTS
