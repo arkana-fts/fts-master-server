@@ -33,6 +33,7 @@
 #  include <malloc.h>
 #endif
 
+#include <fts-net.h>
 #include <Logger.h>
 #include <connection.h>
 #include <connection_waiter.h>
@@ -205,6 +206,10 @@ int main(int argc, char *argv[])
 
     // Logging and daemonizing.
     // ========================
+    if( !FTS::NetworkLibInit( dbgLevel ) ) {
+        std::cout << "Fatal Error: Can't initialize the FTS network library. Abort\n";
+        exit( EXIT_FAILURE );
+    }
 
     // Daemonize if wanted.
     if(bDaemon)
@@ -461,7 +466,7 @@ void connectionListener(uint16_t in_iPort)
 
     if( ERR_OK != pWaiter->init(in_iPort, startClient) )
         return ;
-
+    
     // wait for connections unless we need to quit.
     while(!g_bExit) {
 
