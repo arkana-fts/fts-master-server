@@ -623,7 +623,11 @@ success:
     case DSRV_TBL_USR_SIGNUPD:
     case DSRV_TBL_USR_LASTON:
     case DSRV_TBL_USR_BDAY:
-        p.append(string(pRow[0]));
+        if( pRow[0] == nullptr ) {
+            p.append( string( "" ) );
+        } else {
+            p.append( string( pRow[0] ) );
+        }
         break;
     // In case of unsupported thing, just give back nothing.
     default:
