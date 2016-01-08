@@ -450,6 +450,7 @@ void connectionListener(uint16_t in_iPort)
 {
     auto startClient = [in_iPort](FTS::Connection* pCon) 
     {
+        pCon->setMaxWaitMillisec( 100 ); // Set standard connection time out to 100 ms.
         Client *pCli = ClientsManager::getManager()->createClient( pCon );
         if( pCli == nullptr ) {
             FTSMSG( "[ERROR] Can't create client, may be it exists already. Port<" + toString( (int) in_iPort, 0, ' ', std::ios::hex ) + "> con<" + toString( (const uint64_t) pCon, 4, '0', std::ios_base::hex ) + ">", MsgType::Error );
