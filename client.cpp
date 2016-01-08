@@ -555,8 +555,8 @@ success:
 bool FTSSrv2::Client::onPlayerGet(uint8_t in_cField, const string & in_sNick, Packet *out_pPacket)
 {
     Packet p(DSRV_MSG_PLAYER_GET);
-    MYSQL_RES *pRes = NULL;
-    MYSQL_ROW pRow = NULL;
+    MYSQL_RES *pRes = nullptr;
+    MYSQL_ROW pRow = nullptr;
     int8_t iRet = ERR_OK;
 
     FTSMSGDBG(m_sNick+" is getting 0x"+toString(in_cField,-1,'0',std::ios::hex)+" from "+in_sNick+" ... ", 4);
@@ -594,6 +594,7 @@ success:
     p.append(in_cField);
 
     // And extract the data from the result and add it to the packet.
+    string resultRow = pRow[0] == nullptr ? "" : pRow[0];
     switch (in_cField) {
     // 1 Int:
     case DSRV_TBL_USR_WEEKON:
@@ -603,12 +604,12 @@ success:
     case DSRV_TBL_USR_DRAWS:
     case DSRV_TBL_USR_CLAN:
     case DSRV_TBL_USR_FLAGS:
-        p.append((uint32_t)atoi(pRow[0]));
+        p.append<uint32_t>(atoi(resultRow.c_str()));
         break;
 
     // 1 Char:
     case DSRV_TBL_USR_SEX:
-        p.append((int8_t)atoi(pRow[0]));
+        p.append<int8_t>(atoi( resultRow.c_str() ));
         break;
 
     case DSRV_TBL_USR_MAIL:
@@ -623,15 +624,11 @@ success:
     case DSRV_TBL_USR_SIGNUPD:
     case DSRV_TBL_USR_LASTON:
     case DSRV_TBL_USR_BDAY:
-        if( pRow[0] == nullptr ) {
-            p.append( string( "" ) );
-        } else {
-            p.append( string( pRow[0] ) );
-        }
+        p.append( resultRow );
         break;
     // In case of unsupported thing, just give back nothing.
     default:
-        p.append((uint8_t)0);
+        p.append<uint8_t>(0);
         break;
     }
     DataBase::getUniqueDB()->free(pRes);
