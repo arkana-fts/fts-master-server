@@ -564,7 +564,7 @@ bool FTSSrv2::Client::onPlayerGet(uint8_t in_cField, const string & in_sNick, Pa
     // Do the query to get the field.
     string sArgs = "\'"+DataBase::getUniqueDB()->escape(this->getNick())+"\', "+
                    +"\'"+DataBase::getUniqueDB()->escape(in_sNick)+"\', "+
-                    toString(in_cField);
+                    toString<int>(in_cField);
     if(!DataBase::getUniqueDB()->storedProcedure(pRes, "getUserPropertyNo", sArgs)) {
         DataBase::getUniqueDB()->free(pRes);
         iRet = 1;
@@ -646,7 +646,7 @@ bool FTSSrv2::Client::onPlayerSetFlag(uint32_t in_cFlag, bool in_bValue)
     // The stored procedure does everything for us.
     auto string_b = []( bool b ) -> string { return b ? string( "True" ) : std::string( "False" ); };
     string sArgs = "\'"+DataBase::getUniqueDB()->escape(this->getNick())+"\', "+
-                   +"\'"+toString(in_cFlag)+"\', "+string_b(in_bValue);
+                   +"\'"+toString<int>(in_cFlag)+"\', "+string_b(in_bValue);
     if(ERR_OK != DataBase::getUniqueDB()->storedFunctionInt("setUserFlag", sArgs)) {
         p.append((uint8_t)1);
         FTSMSGDBG("failed", 4);
@@ -987,7 +987,7 @@ bool FTSSrv2::Client::onChatSend(Packet *out_pPacket)
         }
         break;
     default:
-        FTSMSG("failed: unknown type ("+toString(cType)+") !", MsgType::Error);
+        FTSMSG("failed: unknown type ("+toString<int>(cType)+") !", MsgType::Error);
         break;
     }
 
@@ -1104,7 +1104,7 @@ success:
 bool FTSSrv2::Client::onChatUserGet(const string & in_sUser)
 {
     Packet p(DSRV_MSG_CHAT_USER_GET);
-    uint8_t cState = 0;
+    int cState = 0;
     int8_t iRet = ERR_OK;
 
     FTSMSGDBG(m_sNick+" is getting the state of the user "+in_sUser+"... ", 4);
