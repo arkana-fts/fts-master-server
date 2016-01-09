@@ -7,10 +7,8 @@ project(fts-server)
 ################################
 cmake_minimum_required(VERSION 3.1)
 
-
 # Setup the cmake directory containing numerous cmake scripts and macros.
 set(CMAKE_MODULE_PATH "${fts-server_SOURCE_DIR}/cmake")
-
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
 # Disallow in-source builds. #
@@ -20,6 +18,8 @@ if("${CURR_DIR}" STREQUAL "${fts-server_SOURCE_DIR}\n")
     message(FATAL_ERROR "In-source-builds are not allowed to build the Arkana-FTS server. Please go into the \"build\" directory and type \"cmake ..\" there.\nThank you.")
 endif()
 
+# Set the Run time lib version to static #
+##########################################
 if(MSVC)
     FOREACH(flag_var CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE)
         IF(${flag_var} MATCHES "/MD")
@@ -28,11 +28,13 @@ if(MSVC)
     ENDFOREACH(flag_var)
 endif()
 
-# The threads library to use and the mysql client library.
+# The threads library to use and the mysql client library. #
+############################################################
 find_package(Threads REQUIRED)
 find_package(MYSQL REQUIRED)
 
-# Add fts-networking stuff
+# Add fts-networking stuff #
+############################
 set(fts-network_SOURCE_DIR CACHE STRING "Location of the FTS networking library.")
 set(fts-network_LIB_DIR "${fts-network_SOURCE_DIR}/lib")
 include_directories("${fts-network_SOURCE_DIR}/include")
@@ -110,12 +112,6 @@ include_directories(${fts-server_SOURCE_DIR}
                     ${MYSQL_INCLUDE_DIR}
                    )
 
-# Add necessary defines:
-add_definitions(-DD_COMPILES_SERVER
-                -DD_NOCEGUI
-                -DD_OWN_ENDIAN
-               )
-
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_WINSOCK_DEPRECATED_NO_WARNINGS)
     # The findpackage doesn't work very well for VS2015.
@@ -123,8 +119,6 @@ if(MSVC)
     link_directories( ${MYSQL_LIBRARIES_DIR}  )	
     set( MYSQL_LIBRARIES "libmysql.lib;mysqlclient.lib" )
 endif(MSVC)
-
-
 
 # The compiling process. #
 ##########################
