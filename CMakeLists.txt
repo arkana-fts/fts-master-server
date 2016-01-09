@@ -44,19 +44,16 @@ else()
     set_target_properties( fts-net PROPERTIES IMPORTED_LOCATION_DEBUG ${fts-network_LIB_DIR}/libfts-net_d.a)
     set_target_properties( fts-net PROPERTIES IMPORTED_LOCATION_RELEASE ${fts-network_LIB_DIR}/libfts-net.a)
 endif()
-message(STATUS "${fts-network_LIB_DIR} ${fts-network_SOURCE_DIR}")
 
 # Put all sourcefiles into one variable. #
 ##########################################
-set(src main.cpp Server.cpp channel.cpp client.cpp db.cpp db_build.cpp dummy_types.cpp
-            game.cpp  
-            ClientsManager.cpp ChannelManager.cpp GameManager.cpp
-            GetOpt.cpp
+set(src main.cpp Server.cpp channel.cpp client.cpp db.cpp db_build.cpp dummy_types.cpp game.cpp  
+        ClientsManager.cpp ChannelManager.cpp GameManager.cpp
+        GetOpt.cpp
    )
-set(HDR constants.h Server.h channel.h client.h db.h dummy_types.h
-            game.h  
-            ClientsManager.h ChannelManager.h GameManager.h
-            Singleton.h GetOpt.h Mutex.h
+set(HDR constants.h Server.h channel.h client.h db.h dummy_types.h game.h  
+        ClientsManager.h ChannelManager.h GameManager.h
+        Singleton.h GetOpt.h Mutex.h
    ) 
    
 set( CHECKSUM ./checksum/sha2.cpp ./checksum/md5.cpp )
@@ -65,12 +62,15 @@ if(MSVC)
     source_group( Checksum FILES ${CHECKSUM})
     source_group( Header FILES ${HDR})
     source_group( Source FILES ${src})
+else()
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_definitions(-D_DEBUG)
+    endif()
 endif()
 
-if( NOT MSCV)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        add_definitions(-DDEBUG=1)
-    endif()
+# Compiler-dependent and build-dependend flags:
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 endif()
 
 # The configuration settings.
@@ -124,10 +124,6 @@ if(MSVC)
     set( MYSQL_LIBRARIES "libmysql.lib;mysqlclient.lib" )
 endif(MSVC)
 
-# Compiler-dependent and build-dependend flags:
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-endif()
 
 
 # The compiling process. #
