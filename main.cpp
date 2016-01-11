@@ -355,8 +355,8 @@ void printServerStats()
     }
     FTSMSGDBG( "---------+----+----+", 1 );
     using kvstat = std::pair<master_request_t, std::pair<uint64_t, uint64_t>>;
-    int totalSend = std::accumulate( std::begin( totals ), std::end( totals ), 0, [] ( uint64_t sum, const kvstat& p ) { return sum + p.second.second; } );
-    int totalRecv = std::accumulate( std::begin( totals ), std::end( totals ), 0, [] ( uint64_t sum, const kvstat& p ) { return sum + p.second.first; } );
+    auto totalSend = std::accumulate( std::begin( totals ), std::end( totals ), 0ULL, [] ( uint64_t sum, const kvstat& p ) { return sum + p.second.second; } );
+    auto totalRecv = std::accumulate( std::begin( totals ), std::end( totals ), 0ULL, [] ( uint64_t sum, const kvstat& p ) { return sum + p.second.first; } );
     FTSMSGDBG( "Totals   |{1}|{2}|", 1, toString( totalSend, 4, ' ' ), toString( totalRecv, 4, ' ' ) );
 }
 
