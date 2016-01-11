@@ -224,7 +224,7 @@ bool FTSSrv2::Channel::isop( const string & in_sUser )
 int FTSSrv2::Channel::messageToAll( const Client &in_From, const string & in_sMessage, uint8_t in_cFlags )
 {
     Packet *p = new Packet(DSRV_MSG_CHAT_GETMSG);
-    p->append(DSRV_CHAT_TYPE_NORMAL);
+    p->append(DSRV_CHAT_TYPE::NORMAL);
     p->append(in_cFlags);
     p->append(in_From.getNick());
     p->append(in_sMessage);
@@ -239,7 +239,7 @@ int FTSSrv2::Channel::messageToAll( const Client &in_From, const string & in_sMe
 Packet *FTSSrv2::Channel::makeSystemMessagePacket( const string &in_sMessageID )
 {
     Packet *p = new Packet(DSRV_MSG_CHAT_GETMSG);
-    p->append(DSRV_CHAT_TYPE_SYSTEM);
+    p->append(DSRV_CHAT_TYPE::SYSTEM);
     p->append((uint8_t)0);
     p->append(in_sMessageID);
 
