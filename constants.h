@@ -36,8 +36,4 @@
 /// The common NO error return value
 #define ERR_OK  0
 
-#if defined(_WIN32)
-#  define WINDOOF 1
-#endif
-
 #endif                          /* D_CONSTANTS_H */

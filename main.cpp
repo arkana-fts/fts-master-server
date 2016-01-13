@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 
     string sHome = getenv("HOME");
     bool bJustKill = false;
-#if WINDOOF
+#if defined(_WIN32)
     // No run as daemon possible 
     std::string options = "H:l:vskhg:";
 #else
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
                       << "                  The lockfile will be written there.\n";
             std::cout << "      -l LOGDIR  sets the directory to write logfiles\n";
             std::cout << "      -v         activates verbose mode\n";
-#if !WINDOOF
+#if !defined(_WIN32)
             std::cout << "      -d         start as a daemon (not interactive) (EXPERIMENTAL)\n";
 #endif
             std::cout << "      -s         start without REPL. Implied by -d.\n";
@@ -481,7 +481,7 @@ void connectionListener(uint16_t in_iPort)
 
 static void child_handler(int signum)
 {
-#if !WINDOOF
+#if !defined(_WIN32)
     switch(signum) {
     case SIGALRM: exit(EXIT_FAILURE); break;
     case SIGUSR1: exit(EXIT_SUCCESS); break;
@@ -494,7 +494,7 @@ static void child_handler(int signum)
 // From: http://www-theorie.physik.unizh.ch/~dpotter/howto/daemonize
 static void daemonize( const char *lockfile, const char *dir )
 {
-#if !WINDOOF
+#if !defined(_WIN32)
     pid_t pid, sid, parent;
 
     /* already a daemon */
@@ -582,7 +582,7 @@ static void daemonize( const char *lockfile, const char *dir )
 
 static void trytokill(const char *lockfile)
 {
-#if !WINDOOF
+#if !defined(_WIN32)
     if(lockfile == NULL || lockfile[0] == '\0')
         return;
 

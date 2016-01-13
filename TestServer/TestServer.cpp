@@ -13,7 +13,7 @@
 #include "toolcompat.h"
 #include "logging/Chronometer.h"
 
-#if WINDOOF
+#if defined(_WIN32)
 #pragma comment(lib, "Ws2_32.lib")
 #endif
 
@@ -367,7 +367,7 @@ void workerThreadChat( void* port )
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-#if WINDOOF
+#if defined(_WIN32)
     //----------------------
     // Initialize Winsock.
     WSADATA wsaData;
