@@ -131,6 +131,10 @@ int main(int argc, char *argv[])
         switch(opt) {
         case 'H':
             sHome = string(getopt.get());
+            std::replace( std::begin( sHome ), std::end( sHome ), '\\', '/' );
+            if( !sHome.empty() && sHome.back() != '/') {
+                sHome += "/";
+            }
             break;
         case 'l':
             logdir = string(getopt.get());
@@ -170,7 +174,6 @@ int main(int argc, char *argv[])
     }
 
     if(bDaemon) bServerMode = true;
-
     string sLockFile = sHome + "/" + LOCK_FILE;
 
     if(bJustKill) {

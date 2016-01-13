@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 #include "Server.h"
 #include "config.h"
@@ -22,9 +23,9 @@ FTSSrv2::Server::Server(std::string in_logDir, bool in_bVerbose, int in_dbgLevel
 std::string FTSSrv2::Server::tryFile(const std::string &in_sFilename, const std::string &in_sDir) const
 {
     std::string sDir = in_sDir;
-
+    std::replace( std::begin( sDir ), std::end( sDir ), '\\', '/' );
     // Add a trailing slash if needed.
-    if( sDir.length() > 0 && sDir.rfind('/') == std::string::npos ) {
+    if( !sDir.empty() && sDir.back() != '/' ) {
         sDir += "/";
     }
 
