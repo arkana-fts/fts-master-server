@@ -17,21 +17,23 @@ namespace FTS {
 namespace FTSSrv2 {
     class Game;
     class Channel;
+    class DataBase;
 
 class Client {
 private:
-    bool m_bLoggedIn;               ///< Whether the user is logged in or not.
-    std::string m_sNick;            ///< The nickname of the user that is logged on.
-    std::string m_sPassMD5;         ///< The MD5 encoded password of the user that is logged on.
-
-    Game *m_pMyGame;                ///< The game I have started or I am in. NULL else.
-    Channel *m_pMyChannel;          ///< The chat channel the player is currently in.
-    Mutex m_mutex;                  ///< Protect the sendPacket, it is used by other clients to send a msg directly.
-    FTS::Connection *m_pConnection; ///< The connection to my client.
-
+    bool m_bLoggedIn = false;                   ///< Whether the user is logged in or not.
+    std::string m_sNick;                        ///< The nickname of the user that is logged on.
+    std::string m_sPassMD5;                     ///< The MD5 encoded password of the user that is logged on.
+    Game *m_pMyGame = nullptr;                  ///< The game I have started or I am in. NULL else.
+    Channel *m_pMyChannel = nullptr;            ///< The chat channel the player is currently in.
+    Mutex m_mutex;                              ///< Protect the sendPacket, it is used by other clients to send a msg directly.
+    FTS::Connection *m_pConnection = nullptr;   ///< The connection to my client.
+    DataBase* m_DataBase = nullptr;             ///< The data base object.
 public:
     friend class ClientsManager;
 
+    Client() = delete;
+    Client( const Client& other ) = delete;
     Client(FTS::Connection *in_pConnection);
     virtual ~Client();
 
@@ -51,8 +53,7 @@ public:
     inline Game *getMyGame() const { return m_pMyGame; };
     inline void setMyGame(Game *in_pGame) { m_pMyGame = in_pGame; };
 
-    int getID() const;
-    static int getIDByNick(const std::string &in_sNick);
+    int getID() ;
 
     bool sendPacket(FTS::Packet *in_pPacket);
     int sendChatJoins(const std::string &in_sPlayer);
@@ -62,6 +63,7 @@ public:
     int sendChatMottoChanged(const std::string &in_sFrom, const std::string &in_sMotto);
 
 private:
+    int getIDByNick();
 
     //     int onNull( void );
     bool onLogin(const std::string &in_sNick, const std::string &in_sMD5);
@@ -92,6 +94,8 @@ private:
     bool onChatDeop(const std::string &in_sUser);
     bool onChatListMyChans();
     bool onChatDestroyChan(const std::string &in_sChan);
+
+
 };
 
 
