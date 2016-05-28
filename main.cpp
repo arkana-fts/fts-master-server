@@ -6,6 +6,8 @@
 #include <thread>
 #include <algorithm>
 #include <numeric>
+#include <mutex>
+#include <condition_variable>
 
 
 #if defined(_WIN32)
@@ -61,11 +63,15 @@
 #define EXIT_FAILURE 1
 
 bool g_bExit = false;
+std::mutex mtxExit;
+std::condition_variable cvExit;
+
 bool stopSpamThread = false;
 
 void connectionListener(uint16_t in_iPort);
-void help( const std::string& in_pszLine, char *in_pszMe );
+void help( const std::string& in_pszLine );
 void printServerStats();
+void cmdline();
 
 static void daemonize( const char *lockfile, const char *dir );
 static void trytokill(const char *lockfile);
@@ -185,7 +191,7 @@ int main(int argc, char *argv[])
     // =====================================
     int lfp = -1;
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(WIN32)
 #else
     // Check the lockfile
     lfp = open(sLockFile.c_str(),O_RDONLY);
@@ -253,62 +259,12 @@ int main(int argc, char *argv[])
     for(uint16_t i = DSRV_PORT_FIRST; i < DSRV_PORT_LAST + 1; i++)
         threads.emplace_back( connectionListener, i );
 
-    // Here we access directly to it, because we just read it, so there's no danger (I hope)
-    while(!g_bExit) {
-        // Don't read stdin if not in interactive mode (such as being a daemon).
-        if(bServerMode) {
-            std::this_thread::sleep_for( std::chrono::microseconds(10));
-            continue;
-        }
-
-        srvFlush( stdout );
-
-        string s;
-        getline( cin, s );
-        auto linebuf = s.erase( 0, s.find_first_not_of( " \t\n" ) );
-        stringstream sb( linebuf );
-        string cmd;
-
-        while ( getline( sb, cmd, ' ' ) )
-        {
-            std::transform( cmd.begin(), cmd.end(), cmd.begin(), ::tolower ); // Thanks to SO
-            // Parse it !
-            if( cmd == "help"  ) {
-                auto arg = getNextToken( sb );
-                std::transform( arg.begin(), arg.end(), arg.begin(), ::tolower ); // Thanks to SO
-                help( arg, argv[0] );
-            } else if( cmd == "exit" ) {
-                g_bExit = true;
-                break;
-            } else if( cmd == "nplayers" ) {
-                size_t nPlayers = FTSSrv2::Server::getSingletonPtr()->getPlayerCount();
-                FTSMSGDBG( "Number of players that are logged in: " + toString( nPlayers ), 1 );
-            } else if( cmd == "ngames" ) {
-                size_t nGames = FTSSrv2::Server::getSingletonPtr()->getGameCount();
-                FTSMSGDBG( "Number of games that are opened: " + toString( nGames ), 1 );
-            } else if( cmd == "version" ) {
-                FTSMSGDBG( "The version of the server is " D_SERVER_VERSION_STR, 1 );
-            } else if( cmd == "verbose" ) {
-                auto arg = getNextToken( sb );
-                std::transform( arg.begin(), arg.end(), arg.begin(), ::tolower ); // Thanks to SO
-                if( arg == "on" ) {
-                    bool bOld = FTSSrv2::Server::getSingletonPtr()->setVerbose( true );
-                    FTSMSGDBG( "Verbose mode was " + string( bOld ? "on" : "off" ) + ", now it is on.", 1 );
-                } else if( arg == "off" ) {
-                    bool bOld = FTSSrv2::Server::getSingletonPtr()->setVerbose( false );
-                    FTSMSG( "Verbose mode was " + string( bOld ? "on" : "off" ) + ", now it is off.", MsgType::Message );
-                } else {
-                    bool b = FTSSrv2::Server::getSingletonPtr()->getVerbose();
-                    FTSMSG( "Verbose mode is currently " + string( b ? "on" : "off" ), MsgType::Message );
-                }
-            } else if( cmd == "stats" ) {
-                printServerStats();
-            } else if( cmd == "clearstats" ) {
-                FTSSrv2::Server::getSingletonPtr()->clearStats();
-            } else {
-                FTSMSG( "Unknown command '" + string( cmd ) + "', u n00b, try typing 'help' to get some help.", MsgType::Error );
-            }
-        }
+    // Don't read stdin if not in interactive mode (such as being a daemon).
+    if( bServerMode ) {
+        std::unique_lock<std::mutex> lk(mtxExit);
+        cvExit.wait(lk);
+    } else {
+        cmdline();
     }
 
     // Now all is lost, nobody likes fts anymore :( clean up.
@@ -347,6 +303,61 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
+void cmdline()
+{
+    while( !g_bExit ) {
+
+        srvFlush(stdout);
+
+        string s;
+        getline(cin, s);
+        auto linebuf = s.erase(0, s.find_first_not_of(" \t\n"));
+        stringstream sb(linebuf);
+        string cmd;
+
+        while( getline(sb, cmd, ' ') ) {
+            std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower); // Thanks to SO
+                                                                            // Parse it !
+            if( cmd == "help" ) {
+                auto arg = getNextToken(sb);
+                std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower); // Thanks to SO
+                help(arg);
+            } else if( cmd == "exit" ) {
+                g_bExit = true;
+                break;
+            } else if( cmd == "nplayers" ) {
+                size_t nPlayers = FTSSrv2::Server::getSingletonPtr()->getPlayerCount();
+                FTSMSGDBG("Number of players that are logged in: " + toString(nPlayers), 1);
+            } else if( cmd == "ngames" ) {
+                size_t nGames = FTSSrv2::Server::getSingletonPtr()->getGameCount();
+                FTSMSGDBG("Number of games that are opened: " + toString(nGames), 1);
+            } else if( cmd == "version" ) {
+                FTSMSGDBG("The version of the server is " D_SERVER_VERSION_STR, 1);
+            } else if( cmd == "verbose" ) {
+                auto arg = getNextToken(sb);
+                std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower); // Thanks to SO
+                if( arg == "on" ) {
+                    bool bOld = FTSSrv2::Server::getSingletonPtr()->setVerbose(true);
+                    FTSMSGDBG("Verbose mode was " + string(bOld ? "on" : "off") + ", now it is on.", 1);
+                } else if( arg == "off" ) {
+                    bool bOld = FTSSrv2::Server::getSingletonPtr()->setVerbose(false);
+                    FTSMSG("Verbose mode was " + string(bOld ? "on" : "off") + ", now it is off.", MsgType::Message);
+                } else {
+                    bool b = FTSSrv2::Server::getSingletonPtr()->getVerbose();
+                    FTSMSG("Verbose mode is currently " + string(b ? "on" : "off"), MsgType::Message);
+                }
+            } else if( cmd == "stats" ) {
+                printServerStats();
+            } else if( cmd == "clearstats" ) {
+                FTSSrv2::Server::getSingletonPtr()->clearStats();
+            } else {
+                FTSMSG("Unknown command '" + string(cmd) + "', u n00b, try typing 'help' to get some help.", MsgType::Error);
+            }
+        }
+    }
+
+}
+
 void printServerStats()
 {
     auto totals = FTSSrv2::Server::getSingletonPtr()->getStatTotalPackets();
@@ -364,9 +375,8 @@ void printServerStats()
 }
 
 // Display some help.
-void help(const string& topic, char *in_pszMe)
+void help(const string& topic)
 {
-
     if(topic == "help") {
         std::cout << "Just type help once, It won't help to type help more often :p\n";
     } else if(topic == "exit") {
@@ -488,7 +498,7 @@ static void child_handler(int signum)
     switch(signum) {
     case SIGALRM: exit(EXIT_FAILURE); break;
     case SIGUSR1: exit(EXIT_SUCCESS); break;
-    case SIGUSR2: g_bExit = true; break;
+    case SIGUSR2: g_bExit = true; cvExit.notify_all(); break;
     case SIGCHLD: exit(EXIT_FAILURE); break;
     }
 #endif
