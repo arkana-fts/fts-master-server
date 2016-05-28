@@ -649,12 +649,11 @@ static void trytokill(const char *lockfile)
     }
 
     // Give the server some time ...
-    std::this_thread::sleep_for( std::chrono::milliseconds( 5 ) );
+    std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
 
-    printf("If you see any numbers below, the server is still running ! Maybe you just need to give it more time, check ps | grep " DAEMON_NAME " in a few seconds again.\n");
-//    system(("cat "+String(lockfile)+" 2> /dev/null").c_str());
-//    system("ps -C "DAEMON_NAME" -o pid,cmd=");
-    system("ps | grep " DAEMON_NAME );
+    printf("If you see any numbers below, the server is still running ! Maybe you just need to give it more time, check 'ps | grep " DAEMON_NAME "' in a few seconds again.\n");
+    std::string ps_cmd = "ps | grep " + std::to_string(pid);
+    system(ps_cmd.c_str());
     printf("\nIf you didn't see any number one line above, the server has quit successfully.\n");
 #endif
 }
