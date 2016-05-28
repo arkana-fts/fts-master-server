@@ -163,8 +163,8 @@ int main(int argc, char *argv[])
             std::cout << "      -v         activates verbose mode\n";
 #if !defined(_WIN32)
             std::cout << "      -d         start as a daemon (not interactive) (EXPERIMENTAL)\n";
-#endif
             std::cout << "      -s         start without REPL. Implied by -d.\n";
+#endif
             std::cout << "      -k         shut down the active daemon (TODO)\n";
             std::cout << "      -g LEVEL   sets the gravity level of the logger\n";
             std::cout << "      -h         shows this help message\n";
