@@ -6,7 +6,6 @@
 
 #  include "Mutex.h"
 #  include <connection.h>
-#include "ClientsManager.h"
 
 namespace FTS {
     class Packet;

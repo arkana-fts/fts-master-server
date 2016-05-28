@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <list>
 #include <chrono>
 #include <thread>
 #include <algorithm>
@@ -17,22 +16,10 @@
 #else
 #  include <signal.h>
 #  include <pwd.h>
-#  include <mysql/mysql.h>
-
-#  include <sys/select.h>
-#  include <sys/socket.h>
-#  include <arpa/inet.h>
-#  include <sys/types.h>
 #  include <sys/stat.h>
-#  include <stdint.h>
-#  include <stdlib.h>
 #  include <string.h>
 #  include <unistd.h>
-#  include <resolv.h>
-#  include <netdb.h>
 #  include <fcntl.h>
-#  include <errno.h>
-#  include <malloc.h>
 #endif
 
 #include <fts-net.h>
@@ -43,12 +30,10 @@
 #include "Server.h"
 #include "constants.h"
 #include "db.h"
-#include "channel.h"
 #include "client.h"
 #include "ClientsManager.h"
 #include "ChannelManager.h"
 #include "GameManager.h"
-#include "Mutex.h"
 #include "GetOpt.h"
 #include "config.h"
 
