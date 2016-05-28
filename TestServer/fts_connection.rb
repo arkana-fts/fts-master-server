@@ -2,6 +2,7 @@ require 'socket'
 
 class Connection
   def initialize host, port
+    @port = port
     @sock = TCPSocket.open host, port
   end
 
@@ -32,5 +33,9 @@ class Connection
 
   def close
     @sock.close
+  end
+
+  def get_port
+    @port
   end
 end

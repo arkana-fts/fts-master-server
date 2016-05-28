@@ -4,7 +4,7 @@ require_relative 'fts_packets'
 require_relative 'fts_connection'
 
 #$debug = 1
-#$preint_raw = 1
+#$print_raw = 1
 
 def dbgprint? bit
   ($debug & bit) > 0 if $debug
@@ -13,7 +13,7 @@ end
 #$hostname = '192.168.1.12'
 $hostname = 'localhost'
 
-$nClients = 20
+$nClients = 5
 
 $statMsgSend = Hash.new( 0 )
 $statMsgRecv = Hash.new( 0 )
@@ -59,7 +59,7 @@ class Client
       failed = 0
       until @isDone and failed > 3 do
         hdr = @con.recvdata(9)
-        ba = hdr.unpack('H*') if $preint_raw
+        ba = hdr.unpack('H*') if $print_raw
         puts "#r hdr #{hdr} #{ba}" if dbgprint? 0x02
         if hdr.size != 9
           failed += 1
@@ -79,9 +79,13 @@ class Client
         rp = PacketResp.new
         puts "#r asnwer #{answer}" if dbgprint? 0x02
         rp.read(answer)
-        ba = answer.unpack('H*') if $preint_raw
+        ba = answer.unpack('H*') if $print_raw
         puts "#r #{rp} #{ba}" if dbgprint? 0x01
         failed = 0
+        if rp.kind == 1 and rp.result != 0
+          puts "#{@con.get_port}:Failure on #{$kindNames[rp.kind]} with result=#{rp.result}"
+          #puts "Failure on #{$kindNames[rp.kind]} with result=#{rp.result}"
+        end
         $statMsgRecv[rp.kind.snapshot] += 1
         @statMsgRecv[rp.kind.snapshot] += 1
       end
@@ -167,9 +171,9 @@ def testCase1( client )
   client.getUserState
   client.getPublicChannels
   client.listMyChans
-  loops = 19
+  loops = 10
   for i in 0..loops
-    client.destroyChan if i == 10
+#    client.destroyChan if i == 10
     client.chatMessage
   end
   sleep(0.100)
