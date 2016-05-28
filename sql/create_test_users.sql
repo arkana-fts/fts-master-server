@@ -1,3 +1,5 @@
+INSERT INTO `arkana_fts`.`users` (`id`, `nickname`, `password`, `e_mail`, `signup_date`) VALUES ('4', 'Test44917', 'Test44917', 'test917@test.net', '2015-02-08 17:11:00');
+INSERT INTO `arkana_fts`.`users` (`id`, `nickname`, `password`, `e_mail`, `signup_date`) VALUES ('5', 'Test44918', 'Test44918', 'test918@test.net', '2015-02-08 17:11:00');
 INSERT INTO `arkana_fts`.`users` (`id`, `nickname`, `password`, `e_mail`, `signup_date`) VALUES ('6', 'Test44919', 'Test44919', 'test919@test.net', '2015-02-08 17:11:00');
 INSERT INTO `arkana_fts`.`users` (`id`, `nickname`, `password`, `e_mail`, `signup_date`) VALUES ('7', 'Test44920', 'Test44920', 'test920@test.net', '2015-02-08 17:11:00');
 INSERT INTO `arkana_fts`.`users` (`id`, `nickname`, `password`, `e_mail`, `signup_date`) VALUES ('8', 'Test44921', 'Test44921', 'test921@test.net', '2015-02-08 17:11:00');
