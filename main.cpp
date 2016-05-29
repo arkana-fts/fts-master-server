@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <chrono>
@@ -64,12 +65,6 @@ static void trytokill(const char *lockfile);
 using namespace std;
 using namespace FTSSrv2;
 using namespace FTS;
-
-void srvFlush( FILE* pFile )
-{
-    fprintf( pFile, "\n> " );
-    fflush( pFile );
-}
 
 std::string getNextToken( stringstream& sb, char delimiter = ' ' )
 {
@@ -200,8 +195,17 @@ int main(int argc, char *argv[])
 
     // Logging and daemonizing.
     // ========================
-    if( !FTS::NetworkLibInit( dbgLevel ) ) {
+    new Server(logdir, bVerbose, dbgLevel);
+    std::ofstream * outs = nullptr;
+    if( bDaemon ) {
+        outs = new std::ofstream();
+        outs->open(Server::getSingleton().getLogfilename().c_str(), ios::ate);
+    }
+
+    if( !FTS::NetworkLibInit( dbgLevel , outs) ) {
         std::cout << "Fatal Error: Can't initialize the FTS network library. Abort\n";
+        delete Server::getSingletonPtr();
+        delete outs;
         exit( EXIT_FAILURE );
     }
 
@@ -228,7 +232,6 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    new Server(logdir, bVerbose, dbgLevel);
     new ChannelManager();
     ChannelManager::getManager()->init();
     new ClientsManager();
@@ -285,15 +288,16 @@ int main(int argc, char *argv[])
 
     FTSMSGDBG("Everything done, bye\n", 1);
     delete Server::getSingletonPtr();
+    delete outs;
     return EXIT_SUCCESS;
 }
 
 void cmdline()
 {
     while( !g_bExit ) {
-
-        srvFlush(stdout);
-
+        
+        std::cout << "> ";
+        
         string s;
         getline(cin, s);
         auto linebuf = s.erase(0, s.find_first_not_of(" \t\n"));
@@ -302,20 +306,20 @@ void cmdline()
 
         while( getline(sb, cmd, ' ') ) {
             std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower); // Thanks to SO
-                                                                            // Parse it !
+            // Parse it !
             if( cmd == "help" ) {
                 auto arg = getNextToken(sb);
-                std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower); // Thanks to SO
+                std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower);
                 help(arg);
             } else if( cmd == "exit" ) {
                 g_bExit = true;
                 break;
             } else if( cmd == "nplayers" ) {
                 size_t nPlayers = FTSSrv2::Server::getSingletonPtr()->getPlayerCount();
-                FTSMSGDBG("Number of players that are logged in: " + toString(nPlayers), 1);
+                std::cout << "Number of players that are logged in: " << toString(nPlayers) << std::endl;
             } else if( cmd == "ngames" ) {
                 size_t nGames = FTSSrv2::Server::getSingletonPtr()->getGameCount();
-                FTSMSGDBG("Number of games that are opened: " + toString(nGames), 1);
+                std::cout << "Number of games that are opened: " << toString(nGames) << std::endl;
             } else if( cmd == "version" ) {
                 FTSMSGDBG("The version of the server is " D_SERVER_VERSION_STR, 1);
             } else if( cmd == "verbose" ) {
@@ -323,40 +327,39 @@ void cmdline()
                 std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower); // Thanks to SO
                 if( arg == "on" ) {
                     bool bOld = FTSSrv2::Server::getSingletonPtr()->setVerbose(true);
-                    FTSMSGDBG("Verbose mode was " + string(bOld ? "on" : "off") + ", now it is on.", 1);
+                    std::cout << "Verbose mode was " << string(bOld ? "on" : "off") << ", now it is on." << std::endl;
                 } else if( arg == "off" ) {
                     bool bOld = FTSSrv2::Server::getSingletonPtr()->setVerbose(false);
-                    FTSMSG("Verbose mode was " + string(bOld ? "on" : "off") + ", now it is off.", MsgType::Message);
+                    std::cout << "Verbose mode was " << string(bOld ? "on" : "off") << ", now it is off." << std::endl;
                 } else {
                     bool b = FTSSrv2::Server::getSingletonPtr()->getVerbose();
-                    FTSMSG("Verbose mode is currently " + string(b ? "on" : "off"), MsgType::Message);
+                    std::cout << "Verbose mode is currently " << string(b ? "on" : "off") << std::endl;
                 }
             } else if( cmd == "stats" ) {
                 printServerStats();
             } else if( cmd == "clearstats" ) {
                 FTSSrv2::Server::getSingletonPtr()->clearStats();
             } else {
-                FTSMSG("Unknown command '" + string(cmd) + "', u n00b, try typing 'help' to get some help.", MsgType::Error);
+                std::cout << "Unknown command '" << string(cmd) << ", try typing 'help' to get some help." << std::endl;
             }
         }
     }
-
 }
 
 void printServerStats()
 {
     auto totals = FTSSrv2::Server::getSingletonPtr()->getStatTotalPackets();
     FTSMSGDBG( " ", 1 );
-    FTSMSGDBG( "Req No    Snd  Recv", 1 );
-    FTSMSGDBG( "---------+----+----+", 1 );
+    std::cout << "Req No    Snd  Recv\n";
+    std::cout << "---------+----+----+\n";
     for( const auto& kv : totals ) {
-        FTSMSGDBG( "req {1}   |{2}|{3}| ", 1, toString( (int)kv.first, 2, ' ' ), toString( kv.second.first, 4, ' ' ), toString( kv.second.second, 4, ' ' ) );
+        std::cout << "req " << toString((int) kv.first, 2, ' ') << "   |" << toString(kv.second.first, 4, ' ') << "|"<< toString(kv.second.second, 4, ' ') << "|\n";
     }
-    FTSMSGDBG( "---------+----+----+", 1 );
+    std::cout << "---------+----+----+\n";
     using kvstat = std::pair<master_request_t, std::pair<uint64_t, uint64_t>>;
     auto totalSend = std::accumulate( std::begin( totals ), std::end( totals ), 0ULL, [] ( uint64_t sum, const kvstat& p ) { return sum + p.second.second; } );
     auto totalRecv = std::accumulate( std::begin( totals ), std::end( totals ), 0ULL, [] ( uint64_t sum, const kvstat& p ) { return sum + p.second.first; } );
-    FTSMSGDBG( "Totals   |{1}|{2}|", 1, toString( totalSend, 4, ' ' ), toString( totalRecv, 4, ' ' ) );
+    std::cout << "Totals   |" << toString(totalSend, 4, ' ') << "|" << toString(totalRecv, 4, ' ') << "|\n";
 }
 
 // Display some help.
@@ -440,7 +443,6 @@ void help(const string& topic)
         std::cout << "  " << FTSSrv2::Server::getSingletonPtr()->getPlayersfilename() << " contains the number of players actually connected." << std::endl;
         std::cout << "  " << FTSSrv2::Server::getSingletonPtr()->getGamesfilename() << " contains the number of games actually opened." << std::endl;
     }
-    srvFlush(stdout);
 }
 
 // This sets up everything to listen on a certain port, and then goes listen.
