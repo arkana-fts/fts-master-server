@@ -88,17 +88,6 @@ int main(int argc, char *argv[])
     string logdir(DSRV_LOG_DIR);
     int opt = -1;
     int dbgLevel = 1;
-#if defined(_WIN32)
-    //----------------------
-    // Initialize Winsock.
-    WSADATA wsaData;
-    int iResult = WSAStartup( MAKEWORD( 2, 2 ), &wsaData );
-    if ( iResult != NO_ERROR )
-    {
-        std::cout << "WSAStartup failed with error: " << iResult << "\n";
-        return 1;
-    }
-#endif
 
 #ifdef SIGPIPE
     signal(SIGPIPE, SIG_IGN); /* Ignore broken pipe */
@@ -193,22 +182,6 @@ int main(int argc, char *argv[])
     close( lfp );
 #endif
 
-    // Logging and daemonizing.
-    // ========================
-    new Server(logdir, bVerbose, dbgLevel);
-    std::ofstream * outs = nullptr;
-    if( bDaemon ) {
-        outs = new std::ofstream();
-        outs->open(Server::getSingleton().getLogfilename().c_str(), ios::ate);
-    }
-
-    if( !FTS::NetworkLibInit( dbgLevel , outs) ) {
-        std::cout << "Fatal Error: Can't initialize the FTS network library. Abort\n";
-        delete Server::getSingletonPtr();
-        delete outs;
-        exit( EXIT_FAILURE );
-    }
-
     // Daemonize if wanted.
     if(bDaemon)
         daemonize(sLockFile.c_str(), sHome.c_str());
@@ -232,6 +205,41 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+#if defined(_WIN32)
+    //----------------------
+    // Initialize Winsock.
+    WSADATA wsaData;
+    int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if( iResult != NO_ERROR ) {
+        std::cout << "WSAStartup failed with error: " << iResult << "\n";
+        return 1;
+    }
+#endif
+
+    // Logging
+    // =======
+    new Server(logdir, bVerbose, dbgLevel);
+
+    std::ofstream * outs = nullptr;
+    if( bDaemon ) {
+        outs = new std::ofstream();
+        outs->open(Server::getSingleton().getLogfilename().c_str(), ios::ate);
+    }
+
+    // Unfortunately the redirection to the log file is hidden by the netlib init.
+    // Internally the lib init sets the stream to the logger.
+    // From then on all FTSMSG... goes to the out stream (if set).
+    // TODO: Change the implementation to make this behaviour explicit.
+    if( !FTS::NetworkLibInit(dbgLevel, outs) ) {
+        std::cout << "Fatal Error: Can't initialize the FTS network library. Abort\n";
+        delete Server::getSingletonPtr();
+        delete outs;
+    #if defined(_WIN32)
+        WSACleanup();
+    #endif
+        exit(EXIT_FAILURE);
+    }
+
     new ChannelManager();
     ChannelManager::getManager()->init();
     new ClientsManager();
@@ -241,10 +249,9 @@ int main(int argc, char *argv[])
     // =============================
 
     // Create a thread waiting on each port. Including the fts port: 0xAF75 :)
-    // DEBUG: the +1 at the end.
     std::vector<std::thread> threads;
 
-    for(uint16_t i = DSRV_PORT_FIRST; i < DSRV_PORT_LAST + 1; i++)
+    for(uint16_t i = DSRV_PORT_FIRST; i <= DSRV_PORT_LAST ; i++)
         threads.emplace_back( connectionListener, i );
 
     // Don't read stdin if not in interactive mode (such as being a daemon).
@@ -258,10 +265,10 @@ int main(int argc, char *argv[])
     // Now all is lost, nobody likes fts anymore :( clean up.
 
     FTSMSGDBG("Waiting for every thread to close ...", 1);
-    int i = 0;
+    int port = DSRV_PORT_FIRST;
     for( auto& thread : threads ) {
         thread.join();
-        FTSMSGDBG( "Thread on port 0x" + toString( DSRV_PORT_FIRST + i++, -1, '0', std::ios::hex ) + " successfully closed.", 1 );
+        FTSMSGDBG( "Thread on port 0x" + toString( port++, -1, '0', std::ios::hex ) + " successfully closed.", 1 );
     }
 
     // Shutdown all connectons to all clients that still exist.
@@ -289,6 +296,11 @@ int main(int argc, char *argv[])
     FTSMSGDBG("Everything done, bye\n", 1);
     delete Server::getSingletonPtr();
     delete outs;
+
+#if defined(_WIN32)
+    WSACleanup();
+#endif
+
     return EXIT_SUCCESS;
 }
 
