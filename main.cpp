@@ -52,28 +52,28 @@ bool g_bExit = false;
 std::mutex mtxExit;
 std::condition_variable cvExit;
 
-bool stopSpamThread = false;
-
-void connectionListener(uint16_t in_iPort);
-void help( const std::string& in_pszLine );
-void printServerStats();
-void cmdline();
-
-static void daemonize( const char *lockfile, const char *dir );
-static void trytokill(const char *lockfile);
-
 using namespace std;
 using namespace FTSSrv2;
 using namespace FTS;
 
-std::string getNextToken( stringstream& sb, char delimiter = ' ' )
+namespace {
+void connectionListener(uint16_t in_iPort);
+void help(const std::string& in_pszLine);
+void printServerStats();
+void cmdline();
+void daemonize( const char *lockfile, const char *dir );
+void trytokill(const char *lockfile);
+
+std::string getNextToken(stringstream& sb, char delimiter = ' ')
 {
     string token;
     do {
-        getline( sb, token, delimiter );
+        getline(sb, token, delimiter);
     } while( token.empty() && !sb.eof() );
 
     return token;
+}
+
 }
 
 int main(int argc, char *argv[])
@@ -292,12 +292,14 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
+namespace {
+
 void cmdline()
 {
     while( !g_bExit ) {
-        
+
         std::cout << "> ";
-        
+
         string s;
         getline(cin, s);
         auto linebuf = s.erase(0, s.find_first_not_of(" \t\n"));
@@ -349,25 +351,25 @@ void cmdline()
 void printServerStats()
 {
     auto totals = FTSSrv2::Server::getSingletonPtr()->getStatTotalPackets();
-    FTSMSGDBG( " ", 1 );
+    FTSMSGDBG(" ", 1);
     std::cout << "Req No    Snd  Recv\n";
     std::cout << "---------+----+----+\n";
     for( const auto& kv : totals ) {
-        std::cout << "req " << toString((int) kv.first, 2, ' ') << "   |" << toString(kv.second.first, 4, ' ') << "|"<< toString(kv.second.second, 4, ' ') << "|\n";
+        std::cout << "req " << toString((int) kv.first, 2, ' ') << "   |" << toString(kv.second.first, 4, ' ') << "|" << toString(kv.second.second, 4, ' ') << "|\n";
     }
     std::cout << "---------+----+----+\n";
     using kvstat = std::pair<master_request_t, std::pair<uint64_t, uint64_t>>;
-    auto totalSend = std::accumulate( std::begin( totals ), std::end( totals ), 0ULL, [] ( uint64_t sum, const kvstat& p ) { return sum + p.second.second; } );
-    auto totalRecv = std::accumulate( std::begin( totals ), std::end( totals ), 0ULL, [] ( uint64_t sum, const kvstat& p ) { return sum + p.second.first; } );
+    auto totalSend = std::accumulate(std::begin(totals), std::end(totals), 0ULL, [](uint64_t sum, const kvstat& p) { return sum + p.second.second; });
+    auto totalRecv = std::accumulate(std::begin(totals), std::end(totals), 0ULL, [](uint64_t sum, const kvstat& p) { return sum + p.second.first; });
     std::cout << "Totals   |" << toString(totalSend, 4, ' ') << "|" << toString(totalRecv, 4, ' ') << "|\n";
 }
 
 // Display some help.
 void help(const string& topic)
 {
-    if(topic == "help") {
+    if( topic == "help" ) {
         std::cout << "Just type help once, It won't help to type help more often :p\n";
-    } else if(topic == "exit") {
+    } else if( topic == "exit" ) {
         std::cout << "SYNTAX:\n";
         std::cout << "\texit\n";
         std::cout << "\n";
@@ -398,7 +400,7 @@ void help(const string& topic)
         std::cout << "The players that are connected, but not logged in are also counted here.\n";
         std::cout << "You can always see this in the file " DSRV_FILE_NPLAYERS".\n";
         std::cout << "\n";
-    } else if(topic == "ngames") {
+    } else if( topic == "ngames" ) {
         std::cout << "SYNTAX:\n";
         std::cout << "\tngames\n";
         std::cout << "\n";
@@ -407,13 +409,13 @@ void help(const string& topic)
         std::cout << "The players that are opened, but not started yet are also counted here.\n";
         std::cout << "You can always see this in the file " DSRV_FILE_NGAMES".\n";
         std::cout << "\n";
-    } else if(topic == "version") {
+    } else if( topic == "version" ) {
         std::cout << "SYNTAX:\n";
         std::cout << "\tversion\n";
         std::cout << "\n";
         std::cout << "DESC:\n";
         std::cout << "\tThis just prints out the version of the server.\n";
-    } else if(topic == "verbose") {
+    } else if( topic == "verbose" ) {
         std::cout << "SYNTAX:\n";
         std::cout << "\tverbose [on|off]\n";
         std::cout << "\n";
@@ -448,38 +450,38 @@ void help(const string& topic)
 // This sets up everything to listen on a certain port, and then goes listen.
 void connectionListener(uint16_t in_iPort)
 {
-    auto startClient = [in_iPort](FTS::Connection* pCon) 
+    auto startClient = [in_iPort](FTS::Connection* pCon)
     {
-        pCon->setMaxWaitMillisec( 100 ); // Set standard connection time out to 100 ms.
-        Client *pCli = ClientsManager::getManager()->createClient( pCon );
+        pCon->setMaxWaitMillisec(100); // Set standard connection time out to 100 ms.
+        Client *pCli = ClientsManager::getManager()->createClient(pCon);
         if( pCli == nullptr ) {
-            FTSMSG( "[ERROR] Can't create client, may be it exists already. Port<" + toString( (int) in_iPort, 0, ' ', std::ios::hex ) + "> con<" + toString( (const uint64_t) pCon, 4, '0', std::ios_base::hex ) + ">", MsgType::Error );
+            FTSMSG("[ERROR] Can't create client, may be it exists already. Port<" + toString((int) in_iPort, 0, ' ', std::ios::hex) + "> con<" + toString((const uint64_t) pCon, 4, '0', std::ios_base::hex) + ">", MsgType::Error);
         }
 
-        FTSMSGDBG( "Accept connection on port 0x" + toString( (int) in_iPort, 0, ' ', std::ios::hex ) + " client<" + toString( (const uint64_t) pCli, 4, '0', std::ios_base::hex ) + "> con<" + toString( (const uint64_t) pCon, 4, '0', std::ios_base::hex ) + ">", 4 );
+        FTSMSGDBG("Accept connection on port 0x" + toString((int) in_iPort, 0, ' ', std::ios::hex) + " client<" + toString((const uint64_t) pCli, 4, '0', std::ios_base::hex) + "> con<" + toString((const uint64_t) pCon, 4, '0', std::ios_base::hex) + ">", 4);
 
         // And start a new thread for him.
-        auto thr = std::thread( Client::starter, pCli );
+        auto thr = std::thread(Client::starter, pCli);
         thr.detach();
     };
 
-    auto pWaiter = std::unique_ptr<FTS::ConnectionWaiter>( FTS::ConnectionWaiter::create(FTS::ConnectionWaiter::ConnectionType::SOCKET) );
+    auto pWaiter = std::unique_ptr<FTS::ConnectionWaiter>(FTS::ConnectionWaiter::create(FTS::ConnectionWaiter::ConnectionType::SOCKET));
 
     if( ERR_OK != pWaiter->init(in_iPort, startClient) )
-        return ;
-    
+        return;
+
     // wait for connections unless we need to quit.
-    while(!g_bExit) {
+    while( !g_bExit ) {
 
         // Wait for a connection&packet for 1000 ms, if none is got,
         // wait a bit to avoid megaload of cpu. 100 microsec = 0.1 millisec.
         pWaiter->waitForThenDoConnection(1000);
-        std::this_thread::sleep_for( std::chrono::microseconds(100) );
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
 
 }
 
-static void child_handler(int signum)
+void child_handler(int signum)
 {
 #if !defined(_WIN32)
     switch(signum) {
@@ -492,7 +494,7 @@ static void child_handler(int signum)
 }
 
 // From: http://www-theorie.physik.unizh.ch/~dpotter/howto/daemonize
-static void daemonize( const char *lockfile, const char *dir )
+void daemonize( const char *lockfile, const char *dir )
 {
 #if !defined(_WIN32)
     pid_t pid, sid, parent;
@@ -580,7 +582,7 @@ static void daemonize( const char *lockfile, const char *dir )
 #endif
 }
 
-static void trytokill(const char *lockfile)
+void trytokill(const char *lockfile)
 {
 #if !defined(_WIN32)
     if(lockfile == NULL || lockfile[0] == '\0')
@@ -643,4 +645,5 @@ static void trytokill(const char *lockfile)
     system(ps_cmd.c_str());
     printf("\nIf you didn't see any number one line above, the server has quit successfully.\n");
 #endif
+}
 }
