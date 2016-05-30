@@ -74,6 +74,26 @@ std::string getNextToken(stringstream& sb, char delimiter = ' ')
     return token;
 }
 
+void SocketStartup()
+{
+#if defined(_WIN32)
+    //----------------------
+    // Initialize Winsock.
+    WSADATA wsaData;
+    int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if( iResult != NO_ERROR ) {
+        std::cout << "WSAStartup failed with error: " << iResult << "\n";
+    }
+#endif
+}
+
+void SocketCleanup()
+{
+#if defined(_WIN32)
+    WSACleanup();
+#endif
+}
+
 }
 
 int main(int argc, char *argv[])
@@ -159,7 +179,6 @@ int main(int argc, char *argv[])
     // Lockfile checking to start only once.
     // =====================================
     int lfp = -1;
-
 #if defined(_DEBUG) && defined(WIN32)
 #else
     // Check the lockfile
@@ -205,17 +224,6 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-#if defined(_WIN32)
-    //----------------------
-    // Initialize Winsock.
-    WSADATA wsaData;
-    int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if( iResult != NO_ERROR ) {
-        std::cout << "WSAStartup failed with error: " << iResult << "\n";
-        return 1;
-    }
-#endif
-
     // Logging
     // =======
     new Server(logdir, bVerbose, dbgLevel);
@@ -226,18 +234,31 @@ int main(int argc, char *argv[])
         outs->open(Server::getSingleton().getLogfilename().c_str(), ios::ate);
     }
 
+    struct guard
+    {
+        guard()
+        {
+            SocketStartup();
+        }
+        ~guard()
+        {
+            SocketCleanup();
+            delete outs;
+            delete Server::getSingletonPtr();
+            DataBase::deinitUniqueDB();
+        }
+        std::ofstream * outs = nullptr;
+    };
+    guard main_resources;
+    main_resources.outs = outs;
+
     // Unfortunately the redirection to the log file is hidden by the netlib init.
     // Internally the lib init sets the stream to the logger.
     // From then on all FTSMSG... goes to the out stream (if set).
     // TODO: Change the implementation to make this behaviour explicit.
     if( !FTS::NetworkLibInit(dbgLevel, outs) ) {
         std::cout << "Fatal Error: Can't initialize the FTS network library. Abort\n";
-        delete Server::getSingletonPtr();
-        delete outs;
-    #if defined(_WIN32)
-        WSACleanup();
-    #endif
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     new ChannelManager();
@@ -282,8 +303,6 @@ int main(int argc, char *argv[])
     ChannelManager::deinit();
     FTSMSGDBG("All channels successfully shut down.", 1);
 
-    DataBase::deinitUniqueDB();
-
     // We still need to remove the lockfile.
     FTSMSGDBG("Removing the lockfile "+sLockFile+".\n", 1);
     if(0 != remove(sLockFile.c_str())) {
@@ -294,12 +313,6 @@ int main(int argc, char *argv[])
     }
 
     FTSMSGDBG("Everything done, bye\n", 1);
-    delete Server::getSingletonPtr();
-    delete outs;
-
-#if defined(_WIN32)
-    WSACleanup();
-#endif
 
     return EXIT_SUCCESS;
 }
