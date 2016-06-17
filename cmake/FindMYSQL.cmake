@@ -25,11 +25,13 @@ if( WIN32 )
 endif()
 
 find_path(MYSQL_INCLUDE_DIR mysql.h
-    /usr/include/mysql
-    /usr/local/include/mysql
+	/usr/include/mysql
+	/usr/local/include/mysql
 	${ProgramPath}/MySQL/*/include
 	$ENV{SystemDrive}/MySQL/*/include
-    )
+	$ENV{MYSQL_DIR}/include
+	$ENV{MYSQL_DIR}/include/mysql
+	)
 
 if( MSVC )
 # Set lib path suffixes
