@@ -14,22 +14,31 @@ end
 #$hostname = '192.168.1.12'
 $hostname = 'localhost'
 
-$nClients = 5
-
-def testCase1( client )
+def testCaseKick( client )
   client.start
   client.login
   client.join "UselessChan"
-  client.listChatUsers
-  client.getUserState
-  client.getPublicChannels
-  client.listMyChans
-  loops = 10
+  loops = 0
   for i in 0..loops
-#    client.destroyChan if i == 10
+    client.chatMessage "Bond. James Bond."
+  end
+  client.chatMessageTo "Test44918", "I'll kick you!"
+  sleep(0.01)
+  client.kick "Test44918"
+  sleep(0.100)
+  client.logout
+  client.quit
+end
+
+def testCaseChat( client )
+  client.start
+  client.login
+  client.join "UselessChan"
+  loops = 0
+  for i in 0..loops
     client.chatMessage "Hello you. Here John Doe."
   end
-  sleep(0.100)
+  sleep(0.500)
   client.logout
   client.quit
 end
@@ -38,21 +47,25 @@ myClients = Array.new
 
 startTime = Time.now
 
-thr = Array.new
-(0..($nClients-1)).each do |x|
-  port = 44917#  + x
-  passwd = 44917 + x 
-  userpwd = "Test#{passwd}"
-  myClients[x] = Client.new $hostname, port, userpwd, userpwd
-  thr << Thread.start do
-    testCase1 myClients[x] #Client.new $hostname, port, userpwd, userpwd
-  end
+AdminClient = Client.new $hostname, 44917, "Test44933", "Test44933"
+UserClient = Client.new $hostname, 44918, "Test44918", "Test44918"
+myClients << AdminClient
+myClients << UserClient
 
+thr = Array.new
+
+thr << Thread.start do
+  testCaseChat UserClient
+end
+
+thr << Thread.start do
+  testCaseKick AdminClient
 end
 
 thr.each do |t|
   t.join
 end
+
 endTime = Time.now
 
 myClients.each do | client |

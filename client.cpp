@@ -927,67 +927,57 @@ bool FTSSrv2::Client::onChatSend(Packet *out_pPacket)
             {
                 // Are we currently in a channel ?
                 if( m_pMyChannel == nullptr ) {
-                    FTSMSGDBG( "Hmm, in no channel ?", 4 );
+                    FTSMSGDBG( m_sNick + " Hmm, in no channel ?", 4 );
                     iRet = -1;
-                    genAnsw( iRet );
-                    return false;
+                } else {
+                    auto sMsg = out_pPacket->get_string();
+                    if( sMsg.empty() ) {
+                        FTSMSGDBG(m_sNick + " Hmm, no or corrupted text !", 4);
+                        iRet = -2;
+                    } else {
+                        m_pMyChannel->messageToAll(*this, sMsg, cFlags);
+                    }
                 }
-                auto sMsg = out_pPacket->get_string();
-                if( sMsg.empty() ) {
-                    FTSMSGDBG( "Hmm, no or corrupted text !", 4 );
-                    iRet = -2;
-                    genAnsw( iRet );
-                    return false;
-                }
-
-                m_pMyChannel->messageToAll( *this, sMsg, cFlags );
             }
             break;
         case DSRV_CHAT_TYPE::WHISPER:
             {
                 string sTo = trim( out_pPacket->get_string() );
-                FTSMSGDBG( "Target is: " + sTo + ".", 4 );
+                FTSMSGDBG(m_sNick + " Target is: " + sTo + ".", 4 );
 
                 auto pTo = FTSSrv2::ClientsManager::getManager()->findClient( sTo );
                 if( pTo == nullptr ) {
                     // User not online, not existent : send a error.
-                    iRet = 1;
-                    FTSMSGDBG( "Target not existing or online.", 4 );
-                    genAnsw( iRet );
-                    return false;
+                    iRet = -3;
+                    FTSMSGDBG(m_sNick + " Target not existing or online.", 4 );
                 } else if( pTo == this ) {
                     // User is myself: send a error.
-                    iRet = 2;
-                    FTSMSGDBG( "Target is myself.", 4 );
-                    genAnsw( iRet );
-                    return false;
+                    iRet = -4;
+                    FTSMSGDBG(m_sNick + " Target is myself.", 4 );
                 } else {
                     // Send the message to the user.
                     string sMessage = out_pPacket->get_string();
                     if( sMessage.empty() ) {
-                        FTSMSGDBG( "Hmm, no or corrupted text !", 4 );
+                        FTSMSGDBG(m_sNick + " Hmm, no or corrupted text !", 4 );
                         iRet = -2;
-                        genAnsw( iRet );
-                        return false;
-                    }
-                    Packet Ralf( DSRV_MSG_CHAT_GETMSG );
-                    Ralf.append( DSRV_CHAT_TYPE::WHISPER );
-                    Ralf.append( (uint8_t) 0 );
-                    Ralf.append( this->getNick() );
-                    Ralf.append( sMessage );
+                    } else {
+                        Packet Ralf(DSRV_MSG_CHAT_GETMSG);
+                        Ralf.append(DSRV_CHAT_TYPE::WHISPER);
+                        Ralf.append((uint8_t) 0);
+                        Ralf.append(this->getNick());
+                        Ralf.append(sMessage);
 
-                    FTSMSGDBG( "He whisps " + sTo + ": " + sMessage, 4 );
+                        FTSMSGDBG(m_sNick + " He whisps " + sTo + ": " + sMessage, 4);
 
-                    if( pTo->sendPacket( &Ralf ) != ERR_OK ) {
-                        iRet = 3;
-                        genAnsw( iRet );
-                        return false;
+                        if( pTo->sendPacket(&Ralf) != ERR_OK ) {
+                            iRet = -5;
+                        }
                     }
                 }
             }
             break;
         default:
-            FTSMSG( "failed: unknown type (" + DSRV_CHAT_TYPE_toString( cType ) + ") !", MsgType::Error );
+            FTSMSG(m_sNick + " failed: unknown type (" + DSRV_CHAT_TYPE_toString( cType ) + ") !", MsgType::Error );
             iRet = -12;
             break;
     }
