@@ -13,9 +13,6 @@ namespace FTSSrv2 {
 
     class ChannelManager : public FTS::Singleton<ChannelManager>
     {
-    private:
-        std::list<Channel *>m_lpChannels; ///< This list contains all existing channels.
-        Mutex m_mutex; ///< Mutex for accessing me.
 
     public:
         ChannelManager();
@@ -26,8 +23,6 @@ namespace FTSSrv2 {
         static ChannelManager *getManager();
         static void deinit();
 
-        int loadChannels();
-        int saveChannels();
 
         Channel *createChannel( const std::string &in_sName, const Client *in_pCreater, bool in_bPublic = false );
         int removeChannel( Channel *out_pChannel, const std::string &in_sWhoWantsIt );
@@ -37,13 +32,17 @@ namespace FTSSrv2 {
         int joinChannel( Channel *out_pChannel, Client *out_pClient );
         Channel *findChannel( const std::string &in_sName );
         Channel *getDefaultChannel();
-        uint32_t countUserChannels( const std::string &in_sUserName );
         std::list<std::string> getUserChannels( const std::string &in_sUserName );
 
-        int getNChannels()
-        {
-            return ( int ) m_lpChannels.size();
-        }
+        std::size_t getNChannels() { return m_lpChannels.size(); }
+
+    private:
+        int loadChannels();
+        int saveChannels();
+        uint32_t countUserChannels(const std::string &in_sUserName);
+
+        std::list<Channel *>m_lpChannels; ///< This list contains all existing channels.
+        Mutex m_mutex; ///< Mutex for accessing me.
     };
 
 }
