@@ -45,7 +45,7 @@ public:
 
     int messageToAll(const Client &in_From, const std::string &in_sMessage, uint8_t in_cFlags);
 
-    FTS::Packet *makeSystemMessagePacket(const std::string &in_sMessageID);
+    FTS::Packet makeSystemMessagePacket(const std::string &in_sMessageID);
     int sendPacketToAll(FTS::Packet *in_pPacket);
 
     int kick(const Client *in_pFrom, const std::string &in_sUser);

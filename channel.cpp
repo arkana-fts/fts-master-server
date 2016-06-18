@@ -223,25 +223,24 @@ bool FTSSrv2::Channel::isop( const string & in_sUser )
 
 int FTSSrv2::Channel::messageToAll( const Client &in_From, const string & in_sMessage, uint8_t in_cFlags )
 {
-    Packet *p = new Packet(DSRV_MSG_CHAT_GETMSG);
-    p->append(DSRV_CHAT_TYPE::NORMAL);
-    p->append(in_cFlags);
-    p->append(in_From.getNick());
-    p->append(in_sMessage);
+    Packet p(DSRV_MSG_CHAT_GETMSG);
+    p.append(DSRV_CHAT_TYPE::NORMAL);
+    p.append(in_cFlags);
+    p.append(in_From.getNick());
+    p.append(in_sMessage);
 
     FTSMSGDBG(in_From.getNick()+" says "+in_sMessage, 4);
 
-    this->sendPacketToAll(p);
-    delete p;
+    this->sendPacketToAll(&p);
     return ERR_OK;
 }
 
-Packet *FTSSrv2::Channel::makeSystemMessagePacket( const string &in_sMessageID )
+Packet FTSSrv2::Channel::makeSystemMessagePacket( const string &in_sMessageID )
 {
-    Packet *p = new Packet(DSRV_MSG_CHAT_GETMSG);
-    p->append(DSRV_CHAT_TYPE::SYSTEM);
-    p->append((uint8_t)0);
-    p->append(in_sMessageID);
+    Packet p(DSRV_MSG_CHAT_GETMSG);
+    p.append(DSRV_CHAT_TYPE::SYSTEM);
+    p.append((uint8_t)0);
+    p.append(in_sMessageID);
 
     return p;
 }
@@ -314,18 +313,16 @@ int FTSSrv2::Channel::kick( const Client *in_pFrom, const string & in_sUser )
     defaultChannel->join(pKicked);
 
     // Tell him about it.
-    Packet *p = new Packet(DSRV_MSG_CHAT_KICKED);
-    p->append(sKicker);
-    p->append(this->getName());
-    pKicked->sendPacket(p);
-    delete p;
+    Packet p(DSRV_MSG_CHAT_KICKED);
+    p.append(sKicker);
+    p.append(this->getName());
+    pKicked->sendPacket(&p);
 
     // And tell all others in this channel about it.
-    p = this->makeSystemMessagePacket("Chat_Kicked");
-    p->append(sKicker);
-    p->append(pKicked->getNick());
-    this->sendPacketToAll(p);
-    delete p;
+    auto kickMsg = this->makeSystemMessagePacket("Chat_Kicked");
+    kickMsg.append(sKicker);
+    kickMsg.append(pKicked->getNick());
+    sendPacketToAll(&kickMsg);
 
     return ERR_OK;
 }
