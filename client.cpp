@@ -927,12 +927,12 @@ bool FTSSrv2::Client::onChatSend(Packet *out_pPacket)
             {
                 // Are we currently in a channel ?
                 if( m_pMyChannel == nullptr ) {
-                    FTSMSGDBG( m_sNick + " Hmm, in no channel ?", 4 );
+                    FTSMSGDBG( m_sNick + ": Hmm, in no channel ?", 4 );
                     iRet = -1;
                 } else {
                     auto sMsg = out_pPacket->get_string();
                     if( sMsg.empty() ) {
-                        FTSMSGDBG(m_sNick + " Hmm, no or corrupted text !", 4);
+                        FTSMSGDBG(m_sNick + ": Hmm, no or corrupted text !", 4);
                         iRet = -2;
                     } else {
                         m_pMyChannel->messageToAll(*this, sMsg, cFlags);
@@ -943,22 +943,22 @@ bool FTSSrv2::Client::onChatSend(Packet *out_pPacket)
         case DSRV_CHAT_TYPE::WHISPER:
             {
                 string sTo = trim( out_pPacket->get_string() );
-                FTSMSGDBG(m_sNick + " Target is: " + sTo + ".", 4 );
+                FTSMSGDBG(m_sNick + ": Target is: " + sTo + ".", 4 );
 
                 auto pTo = FTSSrv2::ClientsManager::getManager()->findClient( sTo );
                 if( pTo == nullptr ) {
                     // User not online, not existent : send a error.
                     iRet = -3;
-                    FTSMSGDBG(m_sNick + " Target not existing or online.", 4 );
+                    FTSMSGDBG(m_sNick + ": Target not existing or online.", 4 );
                 } else if( pTo == this ) {
                     // User is myself: send a error.
                     iRet = -4;
-                    FTSMSGDBG(m_sNick + " Target is myself.", 4 );
+                    FTSMSGDBG(m_sNick + ": Target is myself.", 4 );
                 } else {
                     // Send the message to the user.
                     string sMessage = out_pPacket->get_string();
                     if( sMessage.empty() ) {
-                        FTSMSGDBG(m_sNick + " Hmm, no or corrupted text !", 4 );
+                        FTSMSGDBG(m_sNick + ": Hmm, no or corrupted text !", 4 );
                         iRet = -2;
                     } else {
                         Packet Ralf(DSRV_MSG_CHAT_GETMSG);
@@ -969,7 +969,8 @@ bool FTSSrv2::Client::onChatSend(Packet *out_pPacket)
 
                         FTSMSGDBG(m_sNick + " He whisps " + sTo + ": " + sMessage, 4);
 
-                        if( pTo->sendPacket(&Ralf) != ERR_OK ) {
+                        if( !pTo->sendPacket(&Ralf) ) {
+                            FTSMSGDBG(m_sNick + ":   -> NOK", 4);
                             iRet = -5;
                         }
                     }
@@ -1135,7 +1136,7 @@ bool FTSSrv2::Client::onChatKick(const string & in_sUser)
     FTSMSGDBG(m_sNick+" wants to kick "+in_sUser+" ... ", 4);
 
     // Are we currently in a channel ?
-    if( m_pMyChannel == NULL ) {
+    if( m_pMyChannel == nullptr ) {
         FTSMSGDBG("Hmm, in no channel ?", 4);
         iRet = -1;
     } else {
