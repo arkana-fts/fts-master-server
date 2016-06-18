@@ -337,7 +337,6 @@ bool FTSSrv2::Client::workPacket(Packet *in_pPacket)
 
 bool FTSSrv2::Client::sendPacket(Packet *in_pPacket)
 {
-    Lock l( m_mutex );
     FTSMSGDBG("\n\nsent message 0x"+toString(in_pPacket->getType(),-1,'0',std::ios::hex), 5);
     return m_pConnection->send(in_pPacket) == FTSC_ERR::OK;
 }
@@ -852,21 +851,21 @@ bool FTSSrv2::Client::onChatJoin(const string & in_sChan)
         }
     }
 
-    iRet = ChannelManager::getManager()->joinChannel( pChannel, this );
-    if( iRet == ERR_OK ) {
-        FTSMSGDBG("success", 4);
+    if( m_pMyChannel )
+        m_pMyChannel->quit(this);
 
-        // Update the location field in the database.
-        string sQuery = "UPDATE `" DSRV_TBL_USR "`"
-                         " SET `"+m_DataBase->TblUsrField(DSRV_TBL_USR_LOCATION)+"`"
-                            "='chan:"+m_DataBase->escape(in_sChan)+"'"
-                         " WHERE `"+m_DataBase->TblUsrField(DSRV_TBL_USR_NICK)+"`"
-                            "='"+m_DataBase->escape(this->getNick())+"'"
-                         " LIMIT 1";
-        MYSQL_RES *pRes;
-        m_DataBase->query(pRes, sQuery);
-        m_DataBase->free(pRes);
-    }
+    pChannel->join(this);
+
+    // Update the location field in the database.
+    string sQuery = "UPDATE `" DSRV_TBL_USR "`"
+                    " SET `"  + m_DataBase->TblUsrField(DSRV_TBL_USR_LOCATION) + "`"
+                    "='chan:" + m_DataBase->escape(in_sChan) + "'"
+                    " WHERE `"+ m_DataBase->TblUsrField(DSRV_TBL_USR_NICK) + "`"
+                    "='" + m_DataBase->escape(this->getNick()) + "'"
+                    " LIMIT 1";
+    MYSQL_RES *pRes;
+    m_DataBase->query(pRes, sQuery);
+    m_DataBase->free(pRes);
 
     // And then send the result back to the client.
     sendPacket(p.append( iRet ) );

@@ -309,7 +309,9 @@ int FTSSrv2::Channel::kick( const Client *in_pFrom, const string & in_sUser )
         return -21;
 
     // Kick him out to the default channel.
-    FTSSrv2::ChannelManager::getManager()->joinChannel(FTSSrv2::ChannelManager::getManager()->getDefaultChannel(), pKicked);
+    quit(pKicked);
+    auto defaultChannel = FTSSrv2::ChannelManager::getManager()->getDefaultChannel();
+    defaultChannel->join(pKicked);
 
     // Tell him about it.
     Packet *p = new Packet(DSRV_MSG_CHAT_KICKED);

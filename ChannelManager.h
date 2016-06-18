@@ -29,7 +29,6 @@ namespace FTSSrv2 {
 
         std::list<Channel *> getPublicChannels();
 
-        int joinChannel( Channel *out_pChannel, Client *out_pClient );
         Channel *findChannel( const std::string &in_sName );
         Channel *getDefaultChannel();
         std::list<std::string> getUserChannels( const std::string &in_sUserName );

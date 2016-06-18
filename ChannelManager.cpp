@@ -215,25 +215,6 @@ std::list<FTSSrv2::Channel *> FTSSrv2::ChannelManager::getPublicChannels()
     return lpPubChannels;
 }
 
-int FTSSrv2::ChannelManager::joinChannel( FTSSrv2::Channel *out_pChannel, Client *out_pClient )
-{
-    if(out_pChannel == nullptr)
-        return -1;
-
-    FTSSrv2::Channel *pOldChan = out_pClient->getMyChannel();
-
-    Lock l(m_mutex);
-    // Leave the old channel.
-    if(pOldChan) {
-        pOldChan->quit(out_pClient);
-    }
-
-    // Join the new channel.
-    out_pChannel->join(out_pClient);
-
-    return ERR_OK;
-}
-
 FTSSrv2::Channel *FTSSrv2::ChannelManager::findChannel(const string & in_sName)
 {
     Lock l(m_mutex);
