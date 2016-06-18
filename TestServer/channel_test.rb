@@ -18,12 +18,12 @@ def testCaseKick( client )
   client.start
   client.login
   client.join "UselessChan"
-  loops = 0
-  for i in 0..loops
+  loops = 5
+  for i in 1..loops
     client.chatMessage "Bond. James Bond."
   end
   client.chatMessageTo "Test44918", "I'll kick you!"
-  sleep(0.01)
+  sleep(0.05)
   client.kick "Test44918"
   sleep(0.100)
   client.logout
@@ -34,8 +34,8 @@ def testCaseChat( client )
   client.start
   client.login
   client.join "UselessChan"
-  loops = 0
-  for i in 0..loops
+  loops = 10
+  for i in 1..loops
     client.chatMessage "Hello you. Here John Doe."
   end
   sleep(0.500)
