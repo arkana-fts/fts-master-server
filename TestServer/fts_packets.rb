@@ -42,9 +42,9 @@ class Packet < PacketHeader
   stringz :user, :onlyif => :isUserRequired?
   stringz :pwd
   stringz :room, :onlyif => lambda{ kind == MsgType::JOIN_CHAT or kind == MsgType::DESTROY_CHAN }
-  uint8   :chat_type, :value => ChatType::NORMAL, :onlyif => lambda{ kind == MsgType::CHAT_SEND_MSG }
+  uint8   :chat_type, :onlyif => lambda{ kind == MsgType::CHAT_SEND_MSG }
   uint8   :flags, :value => 0, :onlyif => lambda{ kind == MsgType::CHAT_SEND_MSG }
-  stringz :toUser, :onlyif => lambda{ (chat_type == ChatType::WHISPER and kind == MsgType::CHAT_SEND_MSG) or kind == MsgType::CHAT_KICK } 
+  stringz :toUser, :onlyif => lambda{ (kind == MsgType::CHAT_SEND_MSG and chat_type == ChatType::WHISPER) or kind == MsgType::CHAT_KICK } 
   stringz :text, :onlyif => lambda{ kind == MsgType::CHAT_SEND_MSG }
   def isUserRequired?
     kind == MsgType::LOGIN or kind == MsgType::GET_CHAT_USER
@@ -69,7 +69,7 @@ class PacketResp < PacketHeader
     kind == MsgType::GET_CHAT_LIST or kind == MsgType::GET_CHAT_PUBLICS or kind == MsgType::CHAT_LIST_MY_CHANS
   end
   def hasResult?
-    kind != MsgType::QUIT_CHAT and kind != MsgType::SOMEONE_JOINS_THE_CHAT and kind != MsgType::CHAT_GET_MSG
+    kind != MsgType::QUIT_CHAT and kind != MsgType::SOMEONE_JOINS_THE_CHAT and kind != MsgType::CHAT_GET_MSG and kind != MsgType::CHAT_KICKED
   end
   def hasName?
     kind == MsgType::QUIT_CHAT or kind == MsgType::SOMEONE_JOINS_THE_CHAT or kind == MsgType::CHAT_GET_MSG or kind == MsgType::CHAT_KICKED

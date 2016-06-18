@@ -89,7 +89,7 @@ class Client
   end
 
   def sender msg
-    sleep(0.1) # make it some how realistic
+    sleep(0.05) # make it some how realistic
     sndlen = @con.senddata msg.to_binary_s
     puts "#s #{msg} #{sndlen} bytes" if $debug
     $statMsgSend[msg.kind.snapshot] += 1 # snapshot returns the value as FixNum ruby object
@@ -115,7 +115,7 @@ class Client
   end
 
   def chatMessage text
-    msg = Packet.new( :ident => 'FTSS', :kind => MsgType::CHAT_SEND_MSG, :pwd => @pwd )
+    msg = Packet.new( :ident => 'FTSS', :kind => MsgType::CHAT_SEND_MSG, :chat_type => ChatType::NORMAL , :pwd => @pwd )
     msg.text = text
     msg.len = 2 + msg.pwd.size + msg.text.size + 2 # chat_type + flags+ 2 * end string delimiter
     sender msg
