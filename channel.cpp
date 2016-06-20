@@ -13,12 +13,13 @@ using namespace FTS;
 using namespace FTSSrv2;
 using namespace std;
 
-FTSSrv2::Channel::Channel( int in_iID, bool in_bPublic, const string & in_sName, const string & in_sMotto, const string & in_sAdmin )
+FTSSrv2::Channel::Channel( int in_iID, bool in_bPublic, const string & in_sName, const string & in_sMotto, const string & in_sAdmin, DataBase* in_pDataBase )
     : m_iID(in_iID)
     , m_bPublic(in_bPublic)
     , m_sName(in_sName)
     , m_sMotto(in_sMotto)
     , m_sAdmin(in_sAdmin)
+    , m_pDataBase(in_pDataBase)
 {
     m_lsOperators.clear( );
     m_lpUsers.clear( );
@@ -89,12 +90,12 @@ int FTSSrv2::Channel::save()
 
     // Create this channel from scratch.
     if( m_iID < 0 ) {
-        sQuery = "\'" + DataBase::getUniqueDB()->escape(m_sName) + "\', " +
-                 "\'" + DataBase::getUniqueDB()->escape(m_sMotto) + "\', " +
-                 "\'" + DataBase::getUniqueDB()->escape(m_sAdmin) + "\', " +
+        sQuery = "\'" + m_pDataBase->escape(m_sName) + "\', " +
+                 "\'" + m_pDataBase->escape(m_sMotto) + "\', " +
+                 "\'" + m_pDataBase->escape(m_sAdmin) + "\', " +
                  string(m_bPublic ? "1" : "0");
 
-        m_iID = DataBase::getUniqueDB()->storedFunctionInt( "channelCreate", sQuery );
+        m_iID = m_pDataBase->storedFunctionInt( "channelCreate", sQuery );
         if( m_iID < 0 ) {
             FTSMSG("Error saving the channel:mysql stored function returned "+toString(m_iID), MsgType::Error);
             return -1;
@@ -103,27 +104,27 @@ int FTSSrv2::Channel::save()
     // Or just save modifications ?
     } else {
         sQuery = "UPDATE `" DSRV_TBL_CHANS "`"
-                 " SET `"+DataBase::getUniqueDB()->TblChansField(DSRV_TBL_CHANS_NAME)+"`"
-                        "=\'" + DataBase::getUniqueDB()->escape(m_sName) + "\',"
-                      "`"+DataBase::getUniqueDB()->TblChansField(DSRV_TBL_CHANS_MOTTO)+"`"
-                        "=\'" + DataBase::getUniqueDB()->escape(m_sMotto) + "\',"
-                      "`"+DataBase::getUniqueDB()->TblChansField(DSRV_TBL_CHANS_ADMIN)+"`"
-                        "=\'" + DataBase::getUniqueDB()->escape(m_sAdmin) + "\',"
-                      "`"+DataBase::getUniqueDB()->TblChansField(DSRV_TBL_CHANS_PUBLIC)+"`"
+                 " SET `"+      m_pDataBase->TblChansField(DSRV_TBL_CHANS_NAME)+"`"
+                        "=\'" + m_pDataBase->escape(m_sName) + "\',"
+                      "`"+      m_pDataBase->TblChansField(DSRV_TBL_CHANS_MOTTO)+"`"
+                        "=\'" + m_pDataBase->escape(m_sMotto) + "\',"
+                      "`"+      m_pDataBase->TblChansField(DSRV_TBL_CHANS_ADMIN)+"`"
+                        "=\'" + m_pDataBase->escape(m_sAdmin) + "\',"
+                      "`"+      m_pDataBase->TblChansField(DSRV_TBL_CHANS_PUBLIC)+"`"
                         "=" + (m_bPublic ? string("1") : string("0")) +
-                 " WHERE `"+DataBase::getUniqueDB()->TblChansField(DSRV_TBL_CHANS_ID)+"`"
+                 " WHERE `"+ m_pDataBase->TblChansField(DSRV_TBL_CHANS_ID)+"`"
                         "=" + toString(m_iID) +
                  " LIMIT 1";
 
         MYSQL_RES *pDummy;
-        DataBase::getUniqueDB()->query(pDummy, sQuery);
-        DataBase::getUniqueDB()->free(pDummy);
+        m_pDataBase->query(pDummy, sQuery);
+        m_pDataBase->free(pDummy);
     }
 
     // Now we have to update the operators table.
     for(const auto& i : m_lsOperators) {
-        sQuery = "\'" + DataBase::getUniqueDB()->escape(i) + "\'," + toString(m_iID);
-        DataBase::getUniqueDB()->storedFunctionInt( "channelAddOp", sQuery );
+        sQuery = "\'" + m_pDataBase->escape(i) + "\'," + toString(m_iID);
+        m_pDataBase->storedFunctionInt( "channelAddOp", sQuery );
     }
 
     return ERR_OK;
@@ -135,10 +136,10 @@ int FTSSrv2::Channel::destroyDB(const string &in_sWhoWantsIt)
     if(m_iID < 0)
         return ERR_OK;
 
-    string sQuery = "\'" + DataBase::getUniqueDB()->escape(in_sWhoWantsIt) + "\', " +
-                     "\'" + DataBase::getUniqueDB()->escape(m_sName) + "\'";
+    string sQuery = "\'"  + m_pDataBase->escape(in_sWhoWantsIt) + "\', " +
+                     "\'" + m_pDataBase->escape(m_sName) + "\'";
 
-    return DataBase::getUniqueDB()->storedFunctionInt("channelDestroy", sQuery);
+    return m_pDataBase->storedFunctionInt("channelDestroy", sQuery);
 }
 
 int FTSSrv2::Channel::op(const string & in_sUser, bool in_bOninit)

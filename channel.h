@@ -12,6 +12,7 @@ namespace FTS {
 
 namespace FTSSrv2 {
     class Client;
+    class DataBase;
 
 class Channel {
 private:
@@ -25,13 +26,15 @@ private:
     std::list<Client *>m_lpUsers;   ///< The users that are currently in this channel.
 
     Mutex m_mutex; ///< Mutex for accessing me.
+    DataBase* m_pDataBase = nullptr; ///< Access the database.
 
 public:
     Channel(int in_iID,
             bool in_bPublic,
             const std::string &in_sName,
             const std::string &in_sMotto,
-            const std::string &in_sAdmin);
+            const std::string &in_sAdmin,
+            DataBase* in_pDataBase);
     virtual ~Channel();
 
     int join(Client *in_pUser);

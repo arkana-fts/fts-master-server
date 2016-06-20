@@ -29,8 +29,6 @@ private:
     FTS::Connection *m_pConnection = nullptr;   ///< The connection to my client.
     DataBase* m_DataBase = nullptr;             ///< The data base object.
 public:
-    friend class ClientsManager;
-
     Client() = delete;
     Client( const Client& other ) = delete;
     Client(FTS::Connection *in_pConnection, DataBase* in_pDataBase);
