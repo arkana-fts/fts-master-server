@@ -5,6 +5,8 @@
 #include "Server.h"
 #include "config.h"
 #include "constants.h"
+#include "ClientsManager.h"
+#include "client.h"
 
 using namespace FTS;
 
@@ -17,6 +19,13 @@ FTSSrv2::Server::Server(std::string in_logDir, bool in_bVerbose, int in_dbgLevel
     m_sNetLogFile   = tryFile(DSRV_LOGFILE_NETLOG ,in_logDir);
     m_sGamesFile    = tryFile(DSRV_FILE_NGAMES    ,in_logDir);
     m_sPlayersFile  = tryFile(DSRV_FILE_NPLAYERS  ,in_logDir);
+
+    m_pClientsManager = new ClientsManager();
+}
+
+FTSSrv2::Server::~Server()
+{
+    delete m_pClientsManager;
 }
 
 // Finds a writable path for a file.
@@ -117,6 +126,21 @@ PacketStats FTSSrv2::Server::getStatTotalPackets()
     return m_totalPackets;
 }
 
+void FTSSrv2::Server::registerClient(Client * in_pClient)
+{
+    m_pClientsManager->registerClient(in_pClient);
+}
+
+void FTSSrv2::Server::unregisterClient(Client * in_pClient)
+{
+    m_pClientsManager->unregisterClient(in_pClient);
+}
+
+FTSSrv2::Client * FTSSrv2::Server::findClient(const std::string & in_sName)
+{
+    return m_pClientsManager->findClient(in_sName);
+}
+
 void FTSSrv2::Server::clearStats()
 {
     Lock l(m_mutex);
@@ -130,3 +154,5 @@ void FTSSrv2::Server::addStats( PacketStats stats)
         m_totalPackets[it.first].second += it.second.second;
     }
 }
+
+

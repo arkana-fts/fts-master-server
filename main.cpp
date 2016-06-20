@@ -243,9 +243,11 @@ int main(int argc, char *argv[])
         ~guard()
         {
             SocketCleanup();
-            delete outs;
+            // Shutdown all connectons to all clients that still exist.
+            FTSMSGDBG("Waiting for all clients to shutdown.", 1);
             delete Server::getSingletonPtr();
             DataBase::deinitUniqueDB();
+            delete outs;
         }
         std::ofstream * outs = nullptr;
     };
@@ -263,7 +265,6 @@ int main(int argc, char *argv[])
 
     new ChannelManager();
     ChannelManager::getManager()->init();
-    new ClientsManager();
     new GameManager();
 
     // Begin to listen on all ports.
@@ -291,10 +292,8 @@ int main(int argc, char *argv[])
         thread.join();
         FTSMSGDBG( "Thread on port 0x" + toString( port++, -1, '0', std::ios::hex ) + " successfully closed.", 1 );
     }
+    FTSMSGDBG("All threads successfully closed.", 1);
 
-    // Shutdown all connectons to all clients that still exist.
-    FTSMSGDBG("All threads successfully closed, waiting for all clients to shutdown.", 1);
-    ClientsManager::deinit();
 
     FTSMSGDBG("All clients successfully shot down, waiting for all games to shutdown.", 1);
     GameManager::deinit();
@@ -478,16 +477,11 @@ void connectionListener(uint16_t in_iPort)
     auto startClient = [in_iPort](FTS::Connection* pCon)
     {
         pCon->setMaxWaitMillisec(100); // Set standard connection time out to 100 ms.
-        Client *pCli = ClientsManager::getManager()->createClient(pCon);
-        if( pCli == nullptr ) {
-            FTSMSG("[ERROR] Can't create client, may be it exists already. Port<" + toString((int) in_iPort, 0, ' ', std::ios::hex) + "> con<" + toString((const uint64_t) pCon, 4, '0', std::ios_base::hex) + ">", MsgType::Error);
-        }
-
-        FTSMSGDBG("Accept connection on port 0x" + toString((int) in_iPort, 0, ' ', std::ios::hex) + " client<" + toString((const uint64_t) pCli, 4, '0', std::ios_base::hex) + "> con<" + toString((const uint64_t) pCon, 4, '0', std::ios_base::hex) + ">", 4);
 
         // And start a new thread for him.
-        auto thr = std::thread(Client::starter, pCli);
+        auto thr = std::thread(Client::starter, new FTSSrv2::Client(pCon));
         thr.detach();
+        FTSMSGDBG("Accept connection on port 0x" + toString((int) in_iPort, 0, ' ', std::ios::hex) + " con<" + toString((const uint64_t) pCon, 4, '0', std::ios_base::hex) + ">", 4);
     };
 
     auto pWaiter = std::unique_ptr<FTS::ConnectionWaiter>(FTS::ConnectionWaiter::create(FTS::ConnectionWaiter::ConnectionType::SOCKET));

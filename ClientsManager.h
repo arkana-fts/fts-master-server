@@ -6,7 +6,6 @@
 #include <string>
 
 #include "Mutex.h"
-#include "Singleton.h"
 
 namespace FTS {
     class Packet;
@@ -16,25 +15,27 @@ namespace FTS {
 namespace FTSSrv2 {
     class Client;
 
-    class ClientsManager : public FTS::Singleton<ClientsManager>
+    class ClientsManager 
     {
-    private:
-        std::map<std::string, Client *>m_mClients;
-        Mutex m_mutex;
-    protected:
     public:
-        ClientsManager();
-        virtual ~ClientsManager();
+        ClientsManager() = default;
+        ClientsManager(const ClientsManager& other) = delete;
+        ClientsManager(ClientsManager&& other) = delete;
 
-        static ClientsManager *getManager();
-        static void deinit();
+        ~ClientsManager();
 
-        Client *createClient( FTS::Connection *in_pConnection );
+        ClientsManager& operator=(const ClientsManager& other) = delete;
+        ClientsManager& operator=(ClientsManager&& other) = delete;
+
         void registerClient( Client *in_pClient );
         void unregisterClient( Client *in_pClient );
         Client *findClient( const std::string &in_sName );
-        Client *findClient( const FTS::Connection *in_pConnection );
-        void deleteClient( const std::string &in_sName );
+
+    private:
+        void deleteClient(const std::string &in_sName);
+
+        std::map<std::string, Client *>m_mClients;
+        Mutex m_mutex;
     };
 
 }

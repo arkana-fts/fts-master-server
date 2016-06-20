@@ -9,33 +9,40 @@
 
 namespace FTSSrv2
 {
+class ClientsManager;
+class Client;
 
 class Server : public FTS::Singleton<Server>
 {
 public:
 
     Server(std::string in_logDir, bool in_bVerbose, int in_dbgLevel);
-    virtual ~Server() {}
-    inline std::string getLogfilename(void) const { return m_sLogFile; };
-    inline std::string getErrfilename(void) const { return m_sErrFile; };
-    inline std::string getNetLogfilename(void) const { return m_sNetLogFile; };
-    inline std::string getPlayersfilename(void) const { return m_sPlayersFile; };
-    inline std::string getGamesfilename(void) const { return m_sGamesFile; };
+    virtual ~Server();
+    static Server* get() { return Server::getSingletonPtr(); }
+    std::string getLogfilename(void) const { return m_sLogFile; };
+    std::string getErrfilename(void) const { return m_sErrFile; };
+    std::string getNetLogfilename(void) const { return m_sNetLogFile; };
+    std::string getPlayersfilename(void) const { return m_sPlayersFile; };
+    std::string getGamesfilename(void) const { return m_sGamesFile; };
 
     size_t addPlayer(void);
     size_t remPlayer(void);
-    inline size_t getPlayerCount(void) const { return m_nPlayers; };
+    size_t getPlayerCount(void) const { return m_nPlayers; };
     size_t addGame(void);
     size_t remGame(void);
-    inline size_t getGameCount(void) const { return m_nGames; };
+    size_t getGameCount(void) const { return m_nGames; };
     void clearStats();
     void addStats( PacketStats stats);
     PacketStats getStatTotalPackets();
 
-    inline bool getVerbose() const { return m_bVerbose; };
-    inline bool setVerbose(bool in_b) { bool bOld = m_bVerbose; m_bVerbose = in_b; return bOld; };
-    inline int  getDbgLevel() const { return m_dbgLvl; }
-    inline int  setDbgLevel(int dbgLvl) { int oldDbgLvl = m_dbgLvl; m_dbgLvl = dbgLvl; return oldDbgLvl; }
+    bool getVerbose() const { return m_bVerbose; };
+    bool setVerbose(bool in_b) { bool bOld = m_bVerbose; m_bVerbose = in_b; return bOld; };
+    int  getDbgLevel() const { return m_dbgLvl; }
+    int  setDbgLevel(int dbgLvl) { int oldDbgLvl = m_dbgLvl; m_dbgLvl = dbgLvl; return oldDbgLvl; }
+
+    void registerClient(Client *in_pClient);
+    void unregisterClient(Client *in_pClient);
+    Client *findClient(const std::string &in_sName);
 
 protected:
     /// Protect from copying.
@@ -44,7 +51,7 @@ protected:
     size_t m_nPlayers = 0 ;     ///< Number of players logged in.
     size_t m_nGames = 0;        ///< Number of games currently opened.
 
-    Mutex m_mutex;         ///< Protects from threaded calls.
+    Mutex m_mutex;              ///< Protects from threaded calls.
     std::string m_sErrFile;     ///< The file to write error messages to.
     std::string m_sLogFile;     ///< The file to write logging messages to.
     std::string m_sNetLogFile;  ///< The file to log network traffic to.
@@ -56,6 +63,7 @@ protected:
 private:
     std::string tryFile(const std::string &in_sFilename, const std::string &in_sDir) const;
 
+    ClientsManager* m_pClientsManager;
     PacketStats m_totalPackets;
 };
 
