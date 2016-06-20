@@ -33,7 +33,7 @@ public:
 
     Client() = delete;
     Client( const Client& other ) = delete;
-    Client(FTS::Connection *in_pConnection);
+    Client(FTS::Connection *in_pConnection, DataBase* in_pDataBase);
     virtual ~Client();
 
     static void starter(Client *in_pThis);

@@ -479,7 +479,7 @@ void connectionListener(uint16_t in_iPort)
         pCon->setMaxWaitMillisec(100); // Set standard connection time out to 100 ms.
 
         // And start a new thread for him.
-        auto thr = std::thread(Client::starter, new FTSSrv2::Client(pCon));
+        auto thr = std::thread(Client::starter, new FTSSrv2::Client(pCon, DataBase::getUniqueDB()));
         thr.detach();
         FTSMSGDBG("Accept connection on port 0x" + toString((int) in_iPort, 0, ' ', std::ios::hex) + " con<" + toString((const uint64_t) pCon, 4, '0', std::ios_base::hex) + ">", 4);
     };

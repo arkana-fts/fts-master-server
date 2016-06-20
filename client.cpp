@@ -57,12 +57,12 @@ std::string DSRV_CHAT_TYPE_toString( DSRV_CHAT_TYPE type)
     return s;
 }
 
-FTSSrv2::Client::Client(Connection *in_pConnection)
+FTSSrv2::Client::Client(Connection *in_pConnection, DataBase* in_pDataBase)
     : m_bLoggedIn(false)
     , m_pMyGame(nullptr)
     , m_pMyChannel(nullptr)
     , m_pConnection(in_pConnection)
-    , m_DataBase(FTSSrv2::DataBase::getUniqueDB())
+    , m_DataBase(in_pDataBase)
 {
 }
 
