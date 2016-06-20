@@ -13,12 +13,12 @@ using namespace FTS;
 using namespace FTSSrv2;
 using namespace std;
 
-FTSSrv2::Channel::Channel( int in_iID, bool in_bPublic, const string & in_sName, const string & in_sMotto, const string & in_sAdmin, DataBase* in_pDataBase )
-    : m_iID(in_iID)
-    , m_bPublic(in_bPublic)
-    , m_sName(in_sName)
-    , m_sMotto(in_sMotto)
-    , m_sAdmin(in_sAdmin)
+FTSSrv2::Channel::Channel(const channel_parameter_t & in_param, DataBase* in_pDataBase )
+    : m_iID(in_param.id)
+    , m_bPublic(in_param.isPublic)
+    , m_sName(in_param.name)
+    , m_sMotto(in_param.motto)
+    , m_sAdmin(in_param.admin)
     , m_pDataBase(in_pDataBase)
 {
     m_lsOperators.clear( );

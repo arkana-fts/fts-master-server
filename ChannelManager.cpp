@@ -39,11 +39,12 @@ int FTSSrv2::ChannelManager::init()
     if(getDefaultChannel() == nullptr) {
         // If not, create it with Pompei2 as admin.
         // We do create it manually here because it's a special case.
-        m_lpChannels.push_back(new FTSSrv2::Channel(-1, true,
-                                                      DSRV_DEFAULT_CHANNEL_NAME,
-                                                      DSRV_DEFAULT_CHANNEL_MOTTO,
-                                                      DSRV_DEFAULT_CHANNEL_ADMIN,
-                                                      DataBase::getUniqueDB()));
+        Channel::channel_parameter_t param;
+        param.isPublic = true;
+        param.name = DSRV_DEFAULT_CHANNEL_NAME;
+        param.motto = DSRV_DEFAULT_CHANNEL_MOTTO;
+        param.admin = DSRV_DEFAULT_CHANNEL_ADMIN;
+        m_lpChannels.push_back(new FTSSrv2::Channel(param, DataBase::getUniqueDB()));
 
     } else if(getDefaultChannel()->getAdmin() != DSRV_DEFAULT_CHANNEL_ADMIN) {
         // Or if somehow another admin is entered in it, set it to the default admin!
@@ -54,11 +55,12 @@ int FTSSrv2::ChannelManager::init()
     if(findChannel(DSRV_DEVS_CHANNEL_NAME) == nullptr) {
         // If not, create it with Pompei2 as admin.
         // We do create it manually here because it's a special case.
-        m_lpChannels.push_back(new FTSSrv2::Channel(-1, true,
-                                                      DSRV_DEVS_CHANNEL_NAME,
-                                                      DSRV_DEVS_CHANNEL_MOTTO,
-                                                      DSRV_DEVS_CHANNEL_ADMIN,
-                                                      DataBase::getUniqueDB()));
+        Channel::channel_parameter_t param;
+        param.isPublic = true;
+        param.name     = DSRV_DEVS_CHANNEL_NAME;
+        param.motto    = DSRV_DEVS_CHANNEL_MOTTO;
+        param.admin    = DSRV_DEVS_CHANNEL_ADMIN;
+        m_lpChannels.push_back(new FTSSrv2::Channel(param, DataBase::getUniqueDB()));
 
     } else if(findChannel(DSRV_DEVS_CHANNEL_NAME)->getAdmin() != DSRV_DEVS_CHANNEL_ADMIN) {
         // Or if somehow another admin is entered in it, set it to the default admin!
@@ -104,13 +106,14 @@ int FTSSrv2::ChannelManager::loadChannels(void)
 
     // Create every single channel.
     while(nullptr != (pRow = mysql_fetch_row(pRes))) {
-        int iChannelID = atoi(pRow[0]);
-        bool bPublic = (pRow[1] == nullptr ? false : (pRow[1][0] == '0' ? false : true));
-        string sChanName = pRow[2];
-        string sChanMotto = pRow[3];
-        string sChanAdmin = pRow[4];
+        Channel::channel_parameter_t param;
+        param.id       = atoi(pRow[0]);
+        param.isPublic = (pRow[1] == nullptr ? false : (pRow[1][0] == '0' ? false : true));
+        param.name     = pRow[2];
+        param.motto    = pRow[3];
+        param.admin    = pRow[4];
 
-        FTSSrv2::Channel *pChan = new FTSSrv2::Channel(iChannelID, bPublic, sChanName, sChanMotto, sChanAdmin, DataBase::getUniqueDB());
+        FTSSrv2::Channel *pChan = new FTSSrv2::Channel(param, DataBase::getUniqueDB());
         m_lpChannels.push_back(pChan);
     }
 
@@ -170,11 +173,15 @@ FTSSrv2::Channel *FTSSrv2::ChannelManager::createChannel(const string & in_sName
         return nullptr;
     }
 
-    Lock l(m_mutex);
-    FTSSrv2::Channel *pChannel = new FTSSrv2::Channel(-1, in_bPublic, in_sName,
-                                      DSRV_DEFAULT_MOTTO,
-                                      in_pCreater->getNick(), DataBase::getUniqueDB());
+    Channel::channel_parameter_t param;
+    param.isPublic = in_bPublic;
+    param.name = in_sName;
+    param.motto = DSRV_DEFAULT_MOTTO;
+    param.admin = in_pCreater->getNick();
 
+    FTSSrv2::Channel *pChannel = new FTSSrv2::Channel(param, DataBase::getUniqueDB());
+
+    Lock l(m_mutex);
     m_lpChannels.push_back(pChannel);
     pChannel->save(); // Update the database right now!
 

@@ -29,12 +29,16 @@ private:
     DataBase* m_pDataBase = nullptr; ///< Access the database.
 
 public:
-    Channel(int in_iID,
-            bool in_bPublic,
-            const std::string &in_sName,
-            const std::string &in_sMotto,
-            const std::string &in_sAdmin,
-            DataBase* in_pDataBase);
+    struct channel_parameter_t
+    {
+        int id = -1;
+        bool isPublic = false;
+        std::string name;
+        std::string motto;
+        std::string admin;
+    };
+ 
+    Channel(const channel_parameter_t &in_param, DataBase* in_pDataBase);
     virtual ~Channel();
 
     int join(Client *in_pUser);
