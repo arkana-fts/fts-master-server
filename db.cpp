@@ -20,6 +20,8 @@ using namespace std;
 
 namespace {
 inline MYSQL* conv(FTSSrv2::db_ptr* p) { return (MYSQL*) p; }
+inline MYSQL_RES* conv(FTSSrv2::db_result* p) { return (MYSQL_RES*) p; }
+
 }
 
 FTSSrv2::DataBase::DataBase()
@@ -77,7 +79,7 @@ FTSSrv2::DataBase::~DataBase()
 
 std::vector<std::tuple<int, bool, std::string, std::string, std::string>> FTSSrv2::DataBase::getChannels()
 {
-    MYSQL_RES *pRes = nullptr;
+    db_result *pRes = nullptr;
     MYSQL_ROW pRow = nullptr;
 
     // Do the query to get the field.
@@ -96,12 +98,12 @@ std::vector<std::tuple<int, bool, std::string, std::string, std::string>> FTSSrv
     }
 
     // Invalid record ? forget about it!
-    if( pRes == nullptr || mysql_num_fields(pRes) < 5 ) {
+    if( pRes == nullptr || mysql_num_fields(conv(pRes)) < 5 ) {
         free(pRes);
         return result;
     }
 
-    while( nullptr != (pRow = mysql_fetch_row(pRes)) ) {
+    while( nullptr != (pRow = mysql_fetch_row(conv(pRes))) ) {
         std::tuple<int, bool, std::string, std::string, std::string> r = make_tuple(atoi(pRow[0]),
             (pRow[1] == nullptr ? false : (pRow[1][0] == '0' ? false : true)), pRow[2], pRow[3], pRow[4]);
         result.push_back(r);
@@ -113,7 +115,7 @@ std::vector<std::tuple<int, bool, std::string, std::string, std::string>> FTSSrv
 
 std::vector<std::tuple<std::string, std::string>> FTSSrv2::DataBase::getChannelOperators()
 {
-    MYSQL_RES *pRes = nullptr;
+    db_result *pRes = nullptr;
     MYSQL_ROW pRow = nullptr;
     std::vector<std::tuple<std::string, std::string>> res;
 
@@ -125,14 +127,14 @@ std::vector<std::tuple<std::string, std::string>> FTSSrv2::DataBase::getChannelO
     }
 
     // Invalid record ? forget about it!
-    if( pRes == nullptr || mysql_num_fields(pRes) < 2 ) {
+    if( pRes == nullptr || mysql_num_fields(conv(pRes)) < 2 ) {
         free(pRes);
         return res;
     }
 
     // Setup every operator<->channel connection.
     // But first just put all assocs. in a list because we need to free the DB.
-    while( nullptr != (pRow = mysql_fetch_row(pRes)) ) {
+    while( nullptr != (pRow = mysql_fetch_row(conv(pRes))) ) {
         auto row = make_tuple(pRow[0],pRow[1]);
         res.push_back(row);
     }
@@ -172,7 +174,7 @@ bool FTSSrv2::DataBase::channelUpdate(const std::tuple<int, bool, std::string, s
         "=" + toString(std::get<0>(record)) +
         " LIMIT 1";
 
-    MYSQL_RES *pDummy;
+    db_result *pDummy;
     query(pDummy, sQuery);
     free(pDummy);
     return true;
@@ -232,7 +234,7 @@ int FTSSrv2::DataBase::insertFeedback(const std::tuple<std::string, std::string>
         " '" + escape(std::get<1>(record)) + "',"
         " NOW())";
 
-    MYSQL_RES *pRes;
+    db_result *pRes;
     int iRet = ERR_OK;
     if( !query(pRes, sQuery) ) {
         iRet = -1;
@@ -257,7 +259,7 @@ int FTSSrv2::DataBase::updatePlayerSet(const std::tuple<std::uint8_t, std::strin
         " = \'" + escape(std::get<3>(record)) + "\' "
         " LIMIT 1";
 
-    MYSQL_RES *pRes;
+    db_result *pRes;
     int iRet = ERR_OK;
     if( !query(pRes, sQuery) ) {
         iRet = 3;
@@ -275,7 +277,7 @@ std::tuple<int, std::string>  FTSSrv2::DataBase::getUserPropertyNo(const std::tu
         +"\'" + escape(std::get<2>(record)) + "\', " +
         toString<int>(std::get<0>(record));
 
-    MYSQL_RES *pRes = nullptr;
+    db_result *pRes = nullptr;
     MYSQL_ROW pRow = nullptr;
     int iRet = ERR_OK;
     string resultRow;
@@ -283,7 +285,7 @@ std::tuple<int, std::string>  FTSSrv2::DataBase::getUserPropertyNo(const std::tu
         iRet = 1;
     } else {
         // Get the query result.
-        if( pRes == nullptr || nullptr == (pRow = mysql_fetch_row(pRes)) ) {
+        if( pRes == nullptr || nullptr == (pRow = mysql_fetch_row(conv(pRes))) ) {
             FTSMSG("failed: sql fetch row: " + getError(), MsgType::Error);
             iRet = 2;
         } else {
@@ -312,7 +314,7 @@ int FTSSrv2::DataBase::updateLocation(const std::tuple<std::string, std::string>
         " WHERE `" + TblUsrField(DSRV_TBL_USR_NICK) + "`"
         "='" + escape(std::get<1>(record)) + "'"
         " LIMIT 1";
-    MYSQL_RES *pRes = nullptr;
+    db_result *pRes = nullptr;
     query(pRes, sQuery);
     free(pRes);
     return ERR_OK;
@@ -320,11 +322,12 @@ int FTSSrv2::DataBase::updateLocation(const std::tuple<std::string, std::string>
 
 int FTSSrv2::DataBase::init()
 {
-    auto pSQL = conv(m_pSQL);
+    MYSQL* pSQL = nullptr;
     if(nullptr == (pSQL = mysql_init(nullptr))) {
         FTSMSG("[ERROR] MySQL init: "+this->getError(), MsgType::Error);
         return -1;
     }
+    m_pSQL = (db_ptr*)pSQL;
 
     char bTrue = 1;
     mysql_options(pSQL, MYSQL_OPT_RECONNECT, &bTrue);
@@ -346,18 +349,18 @@ int FTSSrv2::DataBase::init()
 
     // Call our stored procedure that initialises the database.
     // We don't care about the result, there is none.
-    MYSQL_RES *pRes;
+    db_result *pRes;
     this->storedProcedure(pRes, "init", "");
     free(pRes);
 
     return 0;
 }
 
-int FTSSrv2::DataBase::free(MYSQL_RES *&out_pRes)
+int FTSSrv2::DataBase::free(db_result *&out_pRes)
 {
     // Free the current result set first:
     if(out_pRes) {
-        mysql_free_result(out_pRes);
+        mysql_free_result(conv(out_pRes));
     }
     out_pRes = nullptr;
 
@@ -405,7 +408,7 @@ std::string FTSSrv2::DataBase::getError()
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
 // !! Also, note that only the last query result is kept !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
-bool FTSSrv2::DataBase::query(MYSQL_RES *&out_pRes, std::string in_sQuery)
+bool FTSSrv2::DataBase::query(db_result *&out_pRes, std::string in_sQuery)
 {
     // If the result has to be freed, this mutex only gets unlocked when calling free.
     m_mutex.lock();
@@ -423,7 +426,7 @@ bool FTSSrv2::DataBase::query(MYSQL_RES *&out_pRes, std::string in_sQuery)
         return false;
     }
 
-    out_pRes = mysql_store_result(pSQL);
+    out_pRes = (db_result*)mysql_store_result(pSQL);
     if(out_pRes == nullptr && mysql_field_count(pSQL) != 0) {
         // Errors occured during the query. (connection ? too large result ?)
         FTSMSG("[ERROR] MySQL field count\nQuery string: "+ in_sQuery +"\nError: "+this->getError(), MsgType::Error);
@@ -435,7 +438,7 @@ bool FTSSrv2::DataBase::query(MYSQL_RES *&out_pRes, std::string in_sQuery)
 
 int FTSSrv2::DataBase::storedFunctionInt(std::string in_pszFunc, std::string in_pszArgs)
 {
-    MYSQL_RES *pRes = nullptr;
+    db_result *pRes = nullptr;
     string sQuery = "SELECT `" DSRV_MYSQL_DB "`.`" + in_pszFunc + "` ( "+ in_pszArgs + " )";
     if(!this->query(pRes, sQuery)) {
         return -1;
@@ -443,7 +446,7 @@ int FTSSrv2::DataBase::storedFunctionInt(std::string in_pszFunc, std::string in_
 
     MYSQL_ROW row = nullptr;
     // How can it happen that a stored function returns nothing ??
-    if(nullptr == (row = mysql_fetch_row(pRes))) {
+    if(nullptr == (row = mysql_fetch_row(conv(pRes)))) {
         this->free(pRes);
         FTSMSG("[ERROR] MySQL fetch stored function "+ in_pszFunc +"\nArguments: "+ in_pszArgs +"\nError: "+this->getError(), MsgType::Error);
         return -1;
@@ -454,7 +457,7 @@ int FTSSrv2::DataBase::storedFunctionInt(std::string in_pszFunc, std::string in_
     return iRet;
 }
 
-bool FTSSrv2::DataBase::storedProcedure(MYSQL_RES *&out_pRes,  std::string in_pszProc, std::string in_pszArgs)
+bool FTSSrv2::DataBase::storedProcedure(db_result *&out_pRes,  std::string in_pszProc, std::string in_pszArgs)
 {
     return this->query(out_pRes, string( "CALL `" DSRV_MYSQL_DB "`.`" ) + in_pszProc + "` ( " + in_pszArgs + " )");
 }

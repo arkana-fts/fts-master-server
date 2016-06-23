@@ -7,12 +7,6 @@
 #include <vector>
 #include <tuple>
 
-#if defined(_MSC_VER)
-#  include <WinSock2.h>
-#  include <mysql.h>
-#else
-#  include <mysql/mysql.h>
-#endif
 #include "constants.h"
 
 namespace FTSSrv2 {
@@ -31,13 +25,13 @@ private:
     std::string m_psTblFeedbackFields[DSRV_TBL_FEEDBACK_COUNT];
 
     int init();
-    int free(MYSQL_RES *&out_pRes);
+    int free(db_result *&out_pRes);
     std::string escape(const std::string & in_sStr);
     std::string getError();
     int buildupDataBase();
-    bool query(MYSQL_RES *&out_pRes, std::string in_pszQuery);
+    bool query(db_result *&out_pRes, std::string in_pszQuery);
     int storedFunctionInt(std::string in_pszFunc, std::string in_pszArgs);
-    bool storedProcedure(MYSQL_RES *&out_pRes, std::string in_pszProc, std::string in_pszArgs);
+    bool storedProcedure(db_result *&out_pRes, std::string in_pszProc, std::string in_pszArgs);
 
     std::string TblUsrField(int i) { if( i >= DSRV_TBL_USR_COUNT ) return ""; else return m_psTblUsrFields[i]; };
     std::string TblChansField(int i) { if( i >= DSRV_TBL_CHANS_COUNT ) return ""; else return m_psTblChansFields[i]; };
