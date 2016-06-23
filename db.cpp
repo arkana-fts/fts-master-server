@@ -223,6 +223,7 @@ int FTSSrv2::DataBase::signup(const std::tuple<std::string, std::string, std::st
 
     return iRet;
 }
+
 int FTSSrv2::DataBase::insertFeedback(const std::tuple<std::string, std::string>& record)
 {
     string sQuery = "INSERT INTO `" DSRV_TBL_FEEDBACK "` ("
@@ -322,12 +323,11 @@ int FTSSrv2::DataBase::updateLocation(const std::tuple<std::string, std::string>
 
 int FTSSrv2::DataBase::init()
 {
-    MYSQL* pSQL = nullptr;
-    if(nullptr == (pSQL = mysql_init(nullptr))) {
-        FTSMSG("[ERROR] MySQL init: "+this->getError(), MsgType::Error);
-        return -1;
+    if(nullptr == (m_pSQL = (db_ptr*)mysql_init(nullptr))) {
+        FTSMSG("[ERROR] MySQL init.", MsgType::Error);
+	return -1;
     }
-    m_pSQL = (db_ptr*)pSQL;
+    MYSQL* pSQL = conv(m_pSQL);
 
     char bTrue = 1;
     mysql_options(pSQL, MYSQL_OPT_RECONNECT, &bTrue);
@@ -338,7 +338,7 @@ int FTSSrv2::DataBase::init()
                                   CLIENT_MULTI_STATEMENTS)) {
         FTSMSG("[ERROR] MySQL connect: "+this->getError(), MsgType::Error);
         mysql_close(pSQL);
-        pSQL = nullptr;
+        m_pSQL = nullptr;
         return -2;
     }
 
