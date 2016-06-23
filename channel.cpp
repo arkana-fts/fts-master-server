@@ -90,41 +90,22 @@ int FTSSrv2::Channel::save()
 
     // Create this channel from scratch.
     if( m_iID < 0 ) {
-        sQuery = "\'" + m_pDataBase->escape(m_sName) + "\', " +
-                 "\'" + m_pDataBase->escape(m_sMotto) + "\', " +
-                 "\'" + m_pDataBase->escape(m_sAdmin) + "\', " +
-                 string(m_bPublic ? "1" : "0");
-
-        m_iID = m_pDataBase->storedFunctionInt( "channelCreate", sQuery );
-        if( m_iID < 0 ) {
-            FTSMSG("Error saving the channel:mysql stored function returned "+toString(m_iID), MsgType::Error);
+        auto record = make_tuple(m_bPublic, m_sName, m_sMotto, m_sAdmin);
+        auto rc = m_pDataBase->channelCreate( record );
+        if( !rc ) {
             return -1;
         }
 
     // Or just save modifications ?
     } else {
-        sQuery = "UPDATE `" DSRV_TBL_CHANS "`"
-                 " SET `"+      m_pDataBase->TblChansField(DSRV_TBL_CHANS_NAME)+"`"
-                        "=\'" + m_pDataBase->escape(m_sName) + "\',"
-                      "`"+      m_pDataBase->TblChansField(DSRV_TBL_CHANS_MOTTO)+"`"
-                        "=\'" + m_pDataBase->escape(m_sMotto) + "\',"
-                      "`"+      m_pDataBase->TblChansField(DSRV_TBL_CHANS_ADMIN)+"`"
-                        "=\'" + m_pDataBase->escape(m_sAdmin) + "\',"
-                      "`"+      m_pDataBase->TblChansField(DSRV_TBL_CHANS_PUBLIC)+"`"
-                        "=" + (m_bPublic ? string("1") : string("0")) +
-                 " WHERE `"+ m_pDataBase->TblChansField(DSRV_TBL_CHANS_ID)+"`"
-                        "=" + toString(m_iID) +
-                 " LIMIT 1";
-
-        MYSQL_RES *pDummy;
-        m_pDataBase->query(pDummy, sQuery);
-        m_pDataBase->free(pDummy);
+        auto record = make_tuple(m_iID, m_bPublic, m_sName, m_sMotto, m_sAdmin);
+        m_pDataBase->channelUpdate(record);
     }
 
     // Now we have to update the operators table.
     for(const auto& i : m_lsOperators) {
-        sQuery = "\'" + m_pDataBase->escape(i) + "\'," + toString(m_iID);
-        m_pDataBase->storedFunctionInt( "channelAddOp", sQuery );
+        auto record = make_tuple(i, m_iID);
+        m_pDataBase->channelAddOp(record);
     }
 
     return ERR_OK;
@@ -135,11 +116,8 @@ int FTSSrv2::Channel::destroyDB(const string &in_sWhoWantsIt)
     // Not yet in database, ignore!
     if(m_iID < 0)
         return ERR_OK;
-
-    string sQuery = "\'"  + m_pDataBase->escape(in_sWhoWantsIt) + "\', " +
-                     "\'" + m_pDataBase->escape(m_sName) + "\'";
-
-    return m_pDataBase->storedFunctionInt("channelDestroy", sQuery);
+    auto record = make_tuple(in_sWhoWantsIt, m_sName);
+    return m_pDataBase->channelDestroy(record);
 }
 
 int FTSSrv2::Channel::op(const string & in_sUser, bool in_bOninit)

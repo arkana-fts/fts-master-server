@@ -50,8 +50,6 @@ public:
     inline Game *getMyGame() const { return m_pMyGame; };
     inline void setMyGame(Game *in_pGame) { m_pMyGame = in_pGame; };
 
-    int getID() ;
-
     bool sendPacket(FTS::Packet *in_pPacket);
     int sendChatJoins(const std::string &in_sPlayer);
     int sendChatQuits(const std::string &in_sPlayer);
@@ -60,8 +58,6 @@ public:
     int sendChatMottoChanged(const std::string &in_sFrom, const std::string &in_sMotto);
 
 private:
-    int getIDByNick();
-
     //     int onNull( void );
     bool onLogin(const std::string &in_sNick, const std::string &in_sMD5);
     bool onLogout();

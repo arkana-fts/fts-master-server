@@ -82,75 +82,30 @@ void FTSSrv2::ChannelManager::deinit()
 
 int FTSSrv2::ChannelManager::loadChannels(void)
 {
-    MYSQL_RES *pRes = nullptr;
-    MYSQL_ROW pRow = nullptr;
-
-    // Do the query to get the field.
-    string sQuery = "SELECT  `"+DataBase::getUniqueDB()->TblChansField(DSRV_TBL_CHANS_ID)+"`"
-                            ",`"+DataBase::getUniqueDB()->TblChansField(DSRV_TBL_CHANS_PUBLIC)+"`"
-                            ",`"+DataBase::getUniqueDB()->TblChansField(DSRV_TBL_CHANS_NAME)+"`"
-                            ",`"+DataBase::getUniqueDB()->TblChansField(DSRV_TBL_CHANS_MOTTO)+"`"
-                            ",`"+DataBase::getUniqueDB()->TblChansField(DSRV_TBL_CHANS_ADMIN)+"`"
-                     " FROM `" DSRV_TBL_CHANS "`";
-
-    if(!DataBase::getUniqueDB()->query(pRes, sQuery)) {
-        DataBase::getUniqueDB()->free(pRes);
-        return -1;
-    }
-
-    // Invalid record ? forget about it!
-    if(pRes == nullptr || mysql_num_fields(pRes) < 5) {
-        DataBase::getUniqueDB()->free(pRes);
-        return -2;
-    }
-
+    auto res = DataBase::getUniqueDB()->getChannels();
     // Create every single channel.
-    while(nullptr != (pRow = mysql_fetch_row(pRes))) {
+    for( auto row : res ) {
         Channel::channel_parameter_t param;
-        param.id       = atoi(pRow[0]);
-        param.isPublic = (pRow[1] == nullptr ? false : (pRow[1][0] == '0' ? false : true));
-        param.name     = pRow[2];
-        param.motto    = pRow[3];
-        param.admin    = pRow[4];
+        param.id       = std::get<0>(row);
+        param.isPublic = std::get<1>(row);
+        param.name     = std::get<2>(row);
+        param.motto    = std::get<3>(row);
+        param.admin    = std::get<4>(row);
 
         FTSSrv2::Channel *pChan = new FTSSrv2::Channel(param, DataBase::getUniqueDB());
         m_lpChannels.push_back(pChan);
     }
 
-    DataBase::getUniqueDB()->free(pRes);
-
     // Now read all channel operators.
-    sQuery = "SELECT  `"+DataBase::getUniqueDB()->TblChanOpsField(DSRV_VIEW_CHANOPS_NICK)+"`"
-                    ",`"+DataBase::getUniqueDB()->TblChanOpsField(DSRV_VIEW_CHANOPS_CHAN)+"`"
-             " FROM `" DSRV_VIEW_CHANOPS "`";
-    if(!DataBase::getUniqueDB()->query(pRes, sQuery)) {
-        DataBase::getUniqueDB()->free(pRes);
-        return -3;
-    }
-
-    // Invalid record ? forget about it!
-    if(pRes == nullptr || mysql_num_fields(pRes) < 2) {
-        DataBase::getUniqueDB()->free(pRes);
-        return -4;
-    }
+    auto ops = DataBase::getUniqueDB()->getChannelOperators();
 
     // Setup every operator<->channel connection.
-    // But first just put all assocs. in a list because we need to free the DB.
-    std::list<std::pair<FTSSrv2::Channel *, string> > operators;
-    while(nullptr != (pRow = mysql_fetch_row(pRes))) {
-        FTSSrv2::Channel *pChan = this->findChannel(pRow[1]);
+    for( auto i : ops ) {
+        FTSSrv2::Channel *pChan = this->findChannel(std::get<1>(i));
 
         if(!pChan)
             continue;
-
-        operators.push_back(std::make_pair(pChan, pRow[0]));
-    }
-
-    DataBase::getUniqueDB()->free(pRes);
-
-    // Now we execute that action (only now as the DB result needs to be freed).
-    for( auto& i : operators ) {
-        i.first->op(i.second, true);
+        pChan->op(std::get<0>(i));
     }
 
     return ERR_OK;

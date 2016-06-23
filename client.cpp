@@ -71,16 +71,6 @@ FTSSrv2::Client::~Client()
     delete m_pConnection;
 }
 
-int FTSSrv2::Client::getID() 
-{
-    if( !m_bLoggedIn || m_sNick.empty() ) {
-        FTSMSG("Want to get ID of not logged-in client", MsgType::Error);
-        return -1;
-    }
-
-    return getIDByNick();
-}
-
 void FTSSrv2::Client::starter(Client *in_pThis)
 {
     FTSSrv2::Client *pThis = in_pThis;
@@ -142,11 +132,8 @@ int FTSSrv2::Client::quit()
         }
 
         // Call the stored procedure to logout.
-        iRet = m_DataBase->storedFunctionInt(string("disconnect"),
-                                            "\'" + m_DataBase->escape(m_sNick) + "\', "
-                                            "\'" + m_pConnection->getCounterpartIP() + "\',"
-                                            "\'" + m_DataBase->escape(m_sPassMD5) + "\',"
-                                            "\'" + toString(DSRV_PROC_CONNECT_INGAME) + "\'");
+        auto record = make_tuple(m_sNick, m_pConnection->getCounterpartIP(), m_sPassMD5, DSRV_PROC_CONNECT_INGAME);
+        iRet = m_DataBase->disconnect(record);
 
         if(iRet != ERR_OK) {
             FTSMSG("failed (sql logout script returned "+toString(iRet)+")", MsgType::Error);
@@ -168,36 +155,6 @@ int FTSSrv2::Client::tellToQuit()
     // Closing the connection makes the "quitting"-stone rolling.
     m_pConnection->disconnect();
     return ERR_OK;
-}
-
-int FTSSrv2::Client::getIDByNick()
-{
-    string sQuery;
-    MYSQL_RES *pRes = nullptr;
-    MYSQL_ROW pRow = nullptr;
-
-    // Query the id of the user.
-    sQuery = "SELECT `"+m_DataBase->TblUsrField(DSRV_TBL_USR_ID)+"`"
-             " FROM `" DSRV_TBL_USR "`"
-             " WHERE `"+m_DataBase->TblUsrField(DSRV_TBL_USR_NICK)+"`"
-                "=\'" + m_DataBase->escape(m_sNick) + "\'";
-    if(!m_DataBase->query(pRes, sQuery)) {
-        m_DataBase->free(pRes);
-        FTSMSG("Error during SQL-query in getIDByNick for \"" + m_sNick + "\"", MsgType::Error);
-        return -2;
-    }
-
-    // Get the query result.
-    if(pRes == nullptr || nullptr == (pRow = mysql_fetch_row(pRes))) {
-        FTSMSG("Error during sql fetch row in getID: "+ m_DataBase->getError(), MsgType::Error);
-        m_DataBase->free(pRes);
-        return -3;
-    }
-
-    int iRet = pRow[0] == nullptr ? -4 : atoi(pRow[0]);
-    m_DataBase->free(pRes);
-
-    return iRet;
 }
 
 // Returning true keeps the connection up. False would close the connection.
@@ -398,12 +355,8 @@ bool FTSSrv2::Client::onLogin(const string & in_sNick, const string & in_sMD5)
     FTSMSGDBG(in_sNick+" is logging in ... ", 4);
 
     // Call the stored procedure to login.
-    string sIP = m_pConnection->getCounterpartIP();
-    int iRet = m_DataBase->storedFunctionInt("connect",
-                                        "\'" + m_DataBase->escape(in_sNick) + "\', " +
-                                        "\'" + m_DataBase->escape(in_sMD5)  + "\', " +
-                                        "\'" + m_DataBase->escape(sIP) + "\'," +
-                                        "\'" + toString(DSRV_PROC_CONNECT_INGAME) + "\'");
+    auto record = make_tuple(in_sNick, in_sMD5, m_pConnection->getCounterpartIP(), DSRV_PROC_CONNECT_INGAME);
+    int iRet = m_DataBase->connect(record);
 
     if( iRet == ERR_OK ) {
         // save some "session data".
@@ -473,12 +426,8 @@ bool FTSSrv2::Client::onSignup(const string & in_sNick, const string & in_sMD5, 
         FTSMSG("failed: already logged in !", MsgType::Error);
         iRet = 10;
     } else {
-        string sArgs = "\'" + m_DataBase->escape( in_sNick )  + "\'," +
-                       "\'" + m_DataBase->escape( in_sMD5 )   + "\'," +
-                       "\'" + m_DataBase->escape( in_sEMail ) + "\'";
-
-        // Call the stored procedure to signup.
-        iRet = m_DataBase->storedFunctionInt( "signup", sArgs );
+        auto record = make_tuple(in_sNick, in_sMD5, in_sEMail);
+        int iRet = m_DataBase->signup(record);
         if( iRet != ERR_OK ) {
             FTSMSG( "failed: sql signup script returned " + toString( iRet ), MsgType::Error );
         } else {
@@ -496,22 +445,8 @@ bool FTSSrv2::Client::onSignup(const string & in_sNick, const string & in_sMD5, 
 
 bool FTSSrv2::Client::onFeedback(const string &in_sMessage)
 {
-    int8_t iRet = ERR_OK;
-    string sQuery = "INSERT INTO `" DSRV_TBL_FEEDBACK "` ("
-                        " `"+m_DataBase->TblFeedbackField(DSRV_TBL_FEEDBACK_NICK)+"`,"
-                        " `"+m_DataBase->TblFeedbackField(DSRV_TBL_FEEDBACK_MSG)+"`,"
-                        " `"+m_DataBase->TblFeedbackField(DSRV_TBL_FEEDBACK_WHEN)+"`) "
-                     "VALUES ("
-                        " '"+m_DataBase->escape(this->getNick())+"',"
-                        " '"+m_DataBase->escape(in_sMessage)+"',"
-                        " NOW())";
-
-    MYSQL_RES *pRes;
-    if(!m_DataBase->query(pRes, sQuery)) {
-        iRet = -1;
-    }
-
-    m_DataBase->free(pRes);
+    auto record = make_tuple(this->getNick(), in_sMessage);
+    int8_t iRet = (int8_t) m_DataBase->insertFeedback(record);
 
     // Answer.
     Packet p(DSRV_MSG_FEEDBACK);
@@ -539,7 +474,7 @@ bool FTSSrv2::Client::onPlayerSet(uint8_t in_cField, Packet *out_pPacket)
     case DSRV_TBL_USR_NAME:     // 32
     case DSRV_TBL_USR_BDAY:     // 10
     case DSRV_TBL_USR_CMT:      // 255
-        sValue = m_DataBase->escape(out_pPacket->get_string());
+        sValue = out_pPacket->get_string();
         break;
 
     case DSRV_TBL_USR_SEX:       // 1 Char
@@ -564,30 +499,9 @@ bool FTSSrv2::Client::onPlayerSet(uint8_t in_cField, Packet *out_pPacket)
     }
 
     // Create the query string that modifies this field.
-    string sField = DataBase::TblUsrField(in_cField);
-    if(sField.empty()) {
-        FTSMSG("failed: unknown field definer (0x"+toString(in_cField,-1,'0',std::ios::hex)+")", MsgType::Error);
-        iRet = 2;
-    } else {
-        string sQuery = "UPDATE `" DSRV_TBL_USR "`"
-            " SET `" + sField + "` = \'" + sValue + "\'"
-            " WHERE `" + m_DataBase->TblUsrField( DSRV_TBL_USR_NICK ) + "`"
-            " = \'" + m_DataBase->escape( m_sNick ) + "\'"
-            " AND `" + m_DataBase->TblUsrField( DSRV_TBL_USR_PASS_MD5 ) + "`"
-            " = \'" + m_DataBase->escape( m_sPassMD5 ) + "\' "
-            " LIMIT 1";
+    auto record = make_tuple(in_cField, sValue, m_sNick, m_sPassMD5);
+    iRet = (int8_t) m_DataBase->updatePlayerSet(record);
 
-        MYSQL_RES *pRes;
-        if( !m_DataBase->query( pRes, sQuery ) ) {
-            iRet = 3;
-            FTSMSG( "failed: error during the sql update.", MsgType::Error );
-            m_DataBase->free( pRes );
-        } else {
-            FTSMSGDBG( "success", 4 );
-        }
-        m_DataBase->free( pRes );
-    }
-    
     // And then send the result back to the client.
     p.append(iRet);
     sendPacket(&p);
@@ -598,28 +512,16 @@ bool FTSSrv2::Client::onPlayerSet(uint8_t in_cField, Packet *out_pPacket)
 bool FTSSrv2::Client::onPlayerGet(uint8_t in_cField, const string & in_sNick, Packet *out_pPacket)
 {
     Packet p(DSRV_MSG_PLAYER_GET);
-    MYSQL_RES *pRes = nullptr;
-    MYSQL_ROW pRow = nullptr;
     int8_t iRet = ERR_OK;
+    string resultRow;
 
     FTSMSGDBG(m_sNick+" is getting 0x"+toString(in_cField,-1,'0',std::ios::hex)+" from "+in_sNick+" ... ", 4);
 
     // Do the query to get the field.
-    string sArgs = "\'"+m_DataBase->escape(this->getNick())+"\', "+
-                   +"\'"+m_DataBase->escape(in_sNick)+"\', "+
-                    toString<int>(in_cField);
-    if(!m_DataBase->storedProcedure(pRes, "getUserPropertyNo", sArgs)) {
-        m_DataBase->free(pRes);
-        iRet = 1;
-        sendPacket( p.append( iRet ) );
-        return false;
-    }
+    auto record = make_tuple(in_cField, this->getNick(), in_sNick);
+    std::tie(iRet, resultRow) = m_DataBase->getUserPropertyNo(record);
 
-    // Get the query result.
-    if(pRes == nullptr || nullptr == (pRow = mysql_fetch_row(pRes))) {
-        FTSMSG("failed: sql fetch row: "+m_DataBase->getError(), MsgType::Error);
-        m_DataBase->free(pRes);
-        iRet = 2;
+    if(iRet != ERR_OK) {
         sendPacket( p.append( iRet ) );
         return false;
     }
@@ -630,7 +532,6 @@ bool FTSSrv2::Client::onPlayerGet(uint8_t in_cField, const string & in_sNick, Pa
     p.append(in_cField);
 
     // And extract the data from the result and add it to the packet.
-    string resultRow = pRow[0] == nullptr ? "" : pRow[0];
     switch (in_cField) {
     // 1 Int:
     case DSRV_TBL_USR_WEEKON:
@@ -667,7 +568,6 @@ bool FTSSrv2::Client::onPlayerGet(uint8_t in_cField, const string & in_sNick, Pa
         p.append<uint8_t>(0);
         break;
     }
-    m_DataBase->free(pRes);
 
     // And then send the result back to the client.
     sendPacket(&p);
@@ -681,10 +581,8 @@ bool FTSSrv2::Client::onPlayerSetFlag(uint32_t in_cFlag, bool in_bValue)
     FTSMSGDBG(m_sNick+" is " + (in_bValue ? "setting" : "clearing") + " his flag 0x"+toString(in_cFlag,-1,'0',std::ios::hex)+" ... ", 4);
 
     // The stored procedure does everything for us.
-    auto string_b = []( bool b ) -> string { return b ? string( "True" ) : std::string( "False" ); };
-    string sArgs = "\'"+m_DataBase->escape(this->getNick())+"\', "+
-                   +"\'"+toString<int>(in_cFlag)+"\', "+string_b(in_bValue);
-    if(ERR_OK != m_DataBase->storedFunctionInt("setUserFlag", sArgs)) {
+    auto record = make_tuple(this->getNick(), in_cFlag, in_bValue);
+    if(ERR_OK != m_DataBase->setUserFlag(record)) {
         p.append((uint8_t)1);
         FTSMSGDBG("failed", 4);
     } else {
@@ -857,15 +755,8 @@ bool FTSSrv2::Client::onChatJoin(const string & in_sChan)
     pChannel->join(this);
 
     // Update the location field in the database.
-    string sQuery = "UPDATE `" DSRV_TBL_USR "`"
-                    " SET `"  + m_DataBase->TblUsrField(DSRV_TBL_USR_LOCATION) + "`"
-                    "='chan:" + m_DataBase->escape(in_sChan) + "'"
-                    " WHERE `"+ m_DataBase->TblUsrField(DSRV_TBL_USR_NICK) + "`"
-                    "='" + m_DataBase->escape(this->getNick()) + "'"
-                    " LIMIT 1";
-    MYSQL_RES *pRes;
-    m_DataBase->query(pRes, sQuery);
-    m_DataBase->free(pRes);
+    auto record = make_tuple(in_sChan, getNick());
+    m_DataBase->updateLocation(record);
 
     // And then send the result back to the client.
     sendPacket(p.append( iRet ) );
