@@ -40,7 +40,12 @@ private:
 
 public:
     DataBase();
-    virtual ~DataBase();
+    DataBase(const DataBase& other) = delete;
+    DataBase& operator=(const DataBase& other) = delete;
+    DataBase(DataBase&& other) = delete;
+    DataBase& operator=(DataBase&& other) = delete;
+    ~DataBase();
+
     int init();
 
     std::vector<std::tuple<int, bool, std::string, std::string, std::string>> getChannels();
