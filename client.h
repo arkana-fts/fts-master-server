@@ -6,13 +6,12 @@
 
 #include <connection.h>
 #include "Mutex.h"
-#include "ClientsManager.h"
+#include "IClientsManager.h"
 
 namespace FTS {
     class Packet;
     class Connection;
 }
-
 
 namespace FTSSrv2 {
     class Game;

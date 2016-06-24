@@ -54,7 +54,7 @@ set(src main.cpp Server.cpp channel.cpp client.cpp db.cpp db_build.cpp dummy_typ
         GetOpt.cpp
    )
 set(HDR constants.h Server.h channel.h client.h db.h dummy_types.h game.h  
-        ClientsManager.h ChannelManager.h GameManager.h
+        ClientsManager.h IClientsManager.h ChannelManager.h GameManager.h
         Singleton.h GetOpt.h Mutex.h
    ) 
    

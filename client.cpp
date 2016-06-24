@@ -8,7 +8,7 @@
 #include "channel.h"
 #include "Server.h"
 #include "client.h"
-#include "ClientsManager.h"
+#include "IClientsManager.h"
 #include "constants.h"
 #include "db.h"
 #include "game.h"
