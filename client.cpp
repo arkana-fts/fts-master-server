@@ -12,6 +12,7 @@
 #include "constants.h"
 #include "db.h"
 #include "game.h"
+#include "GameManager.h"
 
 using namespace FTS;
 using namespace FTSSrv2;

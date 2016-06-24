@@ -15,8 +15,6 @@ using namespace std;
 
 FTSSrv2::Game::Game(const string &in_sCreater, const string &in_sCreaterIP, const string &in_sGameName, Packet *out_pPacket)
 {
-    m_mutex.lock();
-
     m_bStarted = false;
 
     // Get the IP and player name of the client.
@@ -42,8 +40,6 @@ FTSSrv2::Game::Game(const string &in_sCreater, const string &in_sCreaterIP, cons
                    "  at IP:port = " + in_sCreaterIP + ":" + toString(m_usPort);
     FTSMSGDBG(sLog, 1);
 
-    m_mutex.unlock();
-
     // Join the game.
     this->playerJoined(in_sCreater);
     this->playerJoined("InexistentTestUser001");
@@ -57,17 +53,15 @@ FTSSrv2::Game::~Game( )
 
 void FTSSrv2::Game::playerJoined(const string &in_sPlayer)
 {
-    m_mutex.lock();
+    Lock l(m_mutex);
     m_lpPlayers.remove(in_sPlayer); // Prohibit double entries.
     m_lpPlayers.push_back(in_sPlayer);
-    m_mutex.unlock();
 }
 
 void FTSSrv2::Game::playerLeft(const string &in_sPlayer)
 {
-    m_mutex.lock();
+    Lock l(m_mutex);
     m_lpPlayers.remove(in_sPlayer);
-    m_mutex.unlock();
 }
 
 int FTSSrv2::Game::addToInfoPacket(Packet *out_pPacket)
@@ -75,13 +69,13 @@ int FTSSrv2::Game::addToInfoPacket(Packet *out_pPacket)
     if(!out_pPacket)
         return -1;
 
-    m_mutex.lock();
+    Lock l(m_mutex);
     out_pPacket->append(m_sIP);
     out_pPacket->append(m_usPort);
     out_pPacket->append(m_sHost);
     out_pPacket->append((uint8_t)m_lpPlayers.size());
-    for(std::list<string>::iterator i = m_lpPlayers.begin() ; i != m_lpPlayers.end() ; ++i) {
-        out_pPacket->append(*i);
+    for( auto i : m_lpPlayers ) {
+        out_pPacket->append(i);
     }
     out_pPacket->append(m_sMapName);
     out_pPacket->append(m_sMapDesc);
@@ -94,7 +88,6 @@ int FTSSrv2::Game::addToInfoPacket(Packet *out_pPacket)
     out_pPacket->append(m_bPressBtnToStart ? (uint8_t)1 : (uint8_t)0);
     m_gPreview.writeToPacket(out_pPacket);
     m_gIcon.writeToPacket(out_pPacket);
-    m_mutex.unlock();
 
     return ERR_OK;
 }
@@ -104,12 +97,11 @@ int FTSSrv2::Game::addToLstPacket(Packet *out_pPacket)
     if(!out_pPacket)
         return -1;
 
-    m_mutex.lock();
+    Lock l(m_mutex);
     out_pPacket->append(m_sName);
     out_pPacket->append(m_sMapName);
     out_pPacket->append(m_bStarted ? (uint8_t)1 : (uint8_t)0);
     m_gIcon.writeToPacket(out_pPacket);
-    m_mutex.unlock();
     return ERR_OK;
 }
 

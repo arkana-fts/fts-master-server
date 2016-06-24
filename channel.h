@@ -1,9 +1,9 @@
-#ifndef D_CHANNEL_H
-#define D_CHANNEL_H
-
-#include "Mutex.h"
+#pragma once
 
 #include <list>
+#include <string>
+
+#include "Mutex.h"
 #include "ChannelManager.h"
 
 namespace FTS {
@@ -16,17 +16,17 @@ namespace FTSSrv2 {
 
 class Channel {
 private:
-    int m_iID;        ///< The MySQL ID of the row, needed when saving.
-    bool m_bPublic;   ///< Whether this is publicly visible or not.
-    std::string m_sName;  ///< The name of this channel.
-    std::string m_sMotto; ///< The motto of this channel.
-    std::string m_sAdmin; ///< The name of the admin of this channel.
+    int m_iID;                          ///< The MySQL ID of the row, needed when saving.
+    bool m_bPublic;                     ///< Whether this is publicly visible or not.
+    std::string m_sName;                ///< The name of this channel.
+    std::string m_sMotto;               ///< The motto of this channel.
+    std::string m_sAdmin;               ///< The name of the admin of this channel.
 
-    std::list<std::string>m_lsOperators; ///< The names of the operators of this channel.
-    std::list<Client *>m_lpUsers;   ///< The users that are currently in this channel.
+    std::list<std::string>m_lsOperators;///< The names of the operators of this channel.
+    std::list<Client *>m_lpUsers;       ///< The users that are currently in this channel.
 
-    Mutex m_mutex; ///< Mutex for accessing me.
-    DataBase* m_pDataBase = nullptr; ///< Access the database.
+    Mutex m_mutex;                      ///< Mutex for accessing me.
+    DataBase* m_pDataBase = nullptr;    ///< Access the database.
 
 public:
     struct channel_parameter_t
@@ -71,7 +71,5 @@ public:
 };
 
 } // namespace FTSSrv2
-
-#endif // D_CHANNEL_H
 
 /* EOF */

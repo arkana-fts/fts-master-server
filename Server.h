@@ -1,9 +1,9 @@
-#if !defined(FTS_SERVER_H)
-#define FTS_SERVER_H
+#pragma once
 
 #include <string>
 #include <unordered_map>
 #include <connection.h>
+
 #include "Singleton.h"
 #include "Mutex.h"
 
@@ -32,12 +32,12 @@ public:
     std::string getPlayersfilename(void) const { return m_sPlayersFile; };
     std::string getGamesfilename(void) const { return m_sGamesFile; };
 
-    size_t addPlayer(void);
-    size_t remPlayer(void);
-    size_t getPlayerCount(void) const { return m_nPlayers; };
-    size_t addGame(void);
-    size_t remGame(void);
-    size_t getGameCount(void) const { return m_nGames; };
+    std::size_t addPlayer(void);
+    std::size_t remPlayer(void);
+    std::size_t getPlayerCount(void) const { return m_nPlayers; };
+    std::size_t addGame(void);
+    std::size_t remGame(void);
+    std::size_t getGameCount(void) const { return m_nGames; };
     void clearStats();
     void addStats( PacketStats stats);
     PacketStats getStatTotalPackets();
@@ -53,8 +53,8 @@ protected:
     /// Protect from copying.
     Server(const Server&) = delete;
 
-    size_t m_nPlayers = 0 ;     ///< Number of players logged in.
-    size_t m_nGames = 0;        ///< Number of games currently opened.
+    std::size_t m_nPlayers = 0 ;     ///< Number of players logged in.
+    std::size_t m_nGames = 0;        ///< Number of games currently opened.
 
     Mutex m_mutex;              ///< Protects from threaded calls.
     std::string m_sErrFile;     ///< The file to write error messages to.
@@ -75,4 +75,3 @@ private:
 
 }
 
-#endif /* SERVER_H */

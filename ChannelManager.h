@@ -1,7 +1,8 @@
 #pragma once
+
 #include <list>
 #include <string>
-#include <cinttypes>
+#include <cstdint>
 
 #include "Mutex.h"
 #include "Singleton.h"

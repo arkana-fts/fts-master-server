@@ -3,6 +3,8 @@
 
 #include <list>
 #include <string>
+#include <cstdint>
+
 #include "Mutex.h"
 #include "Singleton.h"
 
@@ -32,10 +34,7 @@ namespace FTSSrv2 {
 
         int writeListToPacket( FTS::Packet *in_pPacket );
 
-        int16_t getNGames()
-        {
-            return ( int16_t ) m_lpGames.size();
-        }
+        std::int16_t getNGames() const { return (std::int16_t) m_lpGames.size(); }
     };
 
 }
