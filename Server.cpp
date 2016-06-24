@@ -7,10 +7,11 @@
 #include "constants.h"
 #include "ClientsManager.h"
 #include "client.h"
+#include "db.h"
 
 using namespace FTS;
 
-FTSSrv2::Server::Server(std::string in_logDir, bool in_bVerbose, int in_dbgLevel)
+FTSSrv2::Server::Server(std::string in_logDir, bool in_bVerbose, int in_dbgLevel, DataBase* pDataBase)
     : m_bVerbose(in_bVerbose)
     , m_dbgLvl(in_dbgLevel)
 {
@@ -21,12 +22,15 @@ FTSSrv2::Server::Server(std::string in_logDir, bool in_bVerbose, int in_dbgLevel
     m_sPlayersFile  = tryFile(DSRV_FILE_NPLAYERS  ,in_logDir);
 
     m_pClientsManager = new ClientsManager();
+    m_pDataBase = pDataBase;
 }
 
 FTSSrv2::Server::~Server()
 {
     delete m_pClientsManager;
+    delete m_pDataBase;
 }
+
 
 // Finds a writable path for a file.
 std::string FTSSrv2::Server::tryFile(const std::string &in_sFilename, const std::string &in_sDir) const

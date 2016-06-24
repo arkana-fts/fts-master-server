@@ -210,8 +210,9 @@ int main(int argc, char *argv[])
     srand( (unsigned) time( NULL ) );
     setlocale( LC_ALL, "C" );
 
+    auto pDataBase = new DataBase;
     // Try to connect to the mysql database.
-    if(ERR_OK != DataBase::initUniqueDB()) {
+    if(ERR_OK != pDataBase->init()) {
         // We still need to remove the lockfile.
         FTSMSGDBG("Removing the lockfile "+sLockFile+".\n", 1);
         if(0 != remove(sLockFile.c_str())) {
@@ -226,7 +227,7 @@ int main(int argc, char *argv[])
 
     // Logging
     // =======
-    new Server(logdir, bVerbose, dbgLevel);
+    new Server(logdir, bVerbose, dbgLevel, pDataBase);
 
     std::ofstream * outs = nullptr;
     if( bDaemon ) {
@@ -246,7 +247,6 @@ int main(int argc, char *argv[])
             // Shutdown all connectons to all clients that still exist.
             FTSMSGDBG("Waiting for all clients to shutdown.", 1);
             delete Server::getSingletonPtr();
-            DataBase::deinitUniqueDB();
             delete outs;
         }
         std::ofstream * outs = nullptr;
@@ -479,7 +479,7 @@ void connectionListener(uint16_t in_iPort)
         pCon->setMaxWaitMillisec(100); // Set standard connection time out to 100 ms.
 
         // And start a new thread for him.
-        auto thr = std::thread(Client::starter, new FTSSrv2::Client(pCon, DataBase::getUniqueDB()));
+        auto thr = std::thread(Client::starter, new FTSSrv2::Client(pCon, Server::getSingletonPtr()->getDb()));
         thr.detach();
         FTSMSGDBG("Accept connection on port 0x" + toString((int) in_iPort, 0, ' ', std::ios::hex) + " con<" + toString((const uint64_t) pCon, 4, '0', std::ios_base::hex) + ">", 4);
     };

@@ -7,6 +7,7 @@
 #include "client.h"
 #include "db.h"
 #include "config.h"
+#include "Server.h"
 
 using namespace FTS;
 using namespace FTSSrv2;
@@ -44,7 +45,7 @@ int FTSSrv2::ChannelManager::init()
         param.name = DSRV_DEFAULT_CHANNEL_NAME;
         param.motto = DSRV_DEFAULT_CHANNEL_MOTTO;
         param.admin = DSRV_DEFAULT_CHANNEL_ADMIN;
-        m_lpChannels.push_back(new FTSSrv2::Channel(param, DataBase::getUniqueDB()));
+        m_lpChannels.push_back(new FTSSrv2::Channel(param, Server::getSingletonPtr()->getDb()));
 
     } else if(getDefaultChannel()->getAdmin() != DSRV_DEFAULT_CHANNEL_ADMIN) {
         // Or if somehow another admin is entered in it, set it to the default admin!
@@ -60,7 +61,7 @@ int FTSSrv2::ChannelManager::init()
         param.name     = DSRV_DEVS_CHANNEL_NAME;
         param.motto    = DSRV_DEVS_CHANNEL_MOTTO;
         param.admin    = DSRV_DEVS_CHANNEL_ADMIN;
-        m_lpChannels.push_back(new FTSSrv2::Channel(param, DataBase::getUniqueDB()));
+        m_lpChannels.push_back(new FTSSrv2::Channel(param, Server::getSingletonPtr()->getDb()));
 
     } else if(findChannel(DSRV_DEVS_CHANNEL_NAME)->getAdmin() != DSRV_DEVS_CHANNEL_ADMIN) {
         // Or if somehow another admin is entered in it, set it to the default admin!
@@ -82,7 +83,8 @@ void FTSSrv2::ChannelManager::deinit()
 
 int FTSSrv2::ChannelManager::loadChannels(void)
 {
-    auto res = DataBase::getUniqueDB()->getChannels();
+    auto pDB = Server::getSingletonPtr()->getDb();
+    auto res = pDB->getChannels();
     // Create every single channel.
     for( auto row : res ) {
         Channel::channel_parameter_t param;
@@ -92,12 +94,12 @@ int FTSSrv2::ChannelManager::loadChannels(void)
         param.motto    = std::get<3>(row);
         param.admin    = std::get<4>(row);
 
-        FTSSrv2::Channel *pChan = new FTSSrv2::Channel(param, DataBase::getUniqueDB());
+        FTSSrv2::Channel *pChan = new FTSSrv2::Channel(param, pDB);
         m_lpChannels.push_back(pChan);
     }
 
     // Now read all channel operators.
-    auto ops = DataBase::getUniqueDB()->getChannelOperators();
+    auto ops = pDB->getChannelOperators();
 
     // Setup every operator<->channel connection.
     for( auto i : ops ) {
@@ -134,7 +136,7 @@ FTSSrv2::Channel *FTSSrv2::ChannelManager::createChannel(const string & in_sName
     param.motto = DSRV_DEFAULT_MOTTO;
     param.admin = in_pCreater->getNick();
 
-    FTSSrv2::Channel *pChannel = new FTSSrv2::Channel(param, DataBase::getUniqueDB());
+    FTSSrv2::Channel *pChannel = new FTSSrv2::Channel(param, Server::getSingletonPtr()->getDb());
 
     Lock l(m_mutex);
     m_lpChannels.push_back(pChannel);

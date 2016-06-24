@@ -11,12 +11,13 @@ namespace FTSSrv2
 {
 class ClientsManager;
 class Client;
+class DataBase;
 
 class Server : public FTS::Singleton<Server>
 {
 public:
 
-    Server(std::string in_logDir, bool in_bVerbose, int in_dbgLevel);
+    Server(std::string in_logDir, bool in_bVerbose, int in_dbgLevel, DataBase* pDataBase);
     virtual ~Server();
     static Server* get() { return Server::getSingletonPtr(); }
     std::string getLogfilename(void) const { return m_sLogFile; };
@@ -43,7 +44,7 @@ public:
     void registerClient(Client *in_pClient);
     void unregisterClient(Client *in_pClient);
     Client *findClient(const std::string &in_sName);
-
+    DataBase* getDb() { return m_pDataBase; }
 protected:
     /// Protect from copying.
     Server(const Server&) = delete;
@@ -63,7 +64,8 @@ protected:
 private:
     std::string tryFile(const std::string &in_sFilename, const std::string &in_sDir) const;
 
-    ClientsManager* m_pClientsManager;
+    ClientsManager* m_pClientsManager = nullptr; // Server owns the ptr
+    DataBase*       m_pDataBase = nullptr;       // Server owns the ptr
     PacketStats m_totalPackets;
 };
 

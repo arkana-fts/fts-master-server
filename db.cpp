@@ -325,7 +325,7 @@ int FTSSrv2::DataBase::init()
 {
     if(nullptr == (m_pSQL = (db_ptr*)mysql_init(nullptr))) {
         FTSMSG("[ERROR] MySQL init.", MsgType::Error);
-	return -1;
+        return -1;
     }
     MYSQL* pSQL = conv(m_pSQL);
 
@@ -462,28 +462,3 @@ bool FTSSrv2::DataBase::storedProcedure(db_result *&out_pRes,  std::string in_ps
     return this->query(out_pRes, string( "CALL `" DSRV_MYSQL_DB "`.`" ) + in_pszProc + "` ( " + in_pszArgs + " )");
 }
 
-static FTSSrv2::DataBase *g_pTheDatabase = nullptr;
-
-int FTSSrv2::DataBase::initUniqueDB()
-{
-    g_pTheDatabase = new FTSSrv2::DataBase();
-    if(0 != g_pTheDatabase->init()) {
-        delete g_pTheDatabase;
-        g_pTheDatabase = nullptr;
-        return -1;
-    }
-
-    return 0;
-}
-
-FTSSrv2::DataBase *FTSSrv2::DataBase::getUniqueDB()
-{
-    return g_pTheDatabase;
-}
-
-int FTSSrv2::DataBase::deinitUniqueDB()
-{
-    delete g_pTheDatabase;
-    g_pTheDatabase = nullptr;
-    return 0;
-}

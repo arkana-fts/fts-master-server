@@ -3,7 +3,7 @@ require 'socket'
 require_relative 'fts_packets'
 require_relative 'fts_connection'
 
-$debug = 1
+#$debug = 1
 #$print_raw = 1
 
 def dbgprint? bit

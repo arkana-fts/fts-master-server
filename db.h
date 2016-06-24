@@ -24,7 +24,6 @@ private:
     std::string m_psTblChanOpsFields[DSRV_VIEW_CHANOPS_COUNT];
     std::string m_psTblFeedbackFields[DSRV_TBL_FEEDBACK_COUNT];
 
-    int init();
     int free(db_result *&out_pRes);
     std::string escape(const std::string & in_sStr);
     std::string getError();
@@ -42,6 +41,7 @@ private:
 public:
     DataBase();
     virtual ~DataBase();
+    int init();
 
     std::vector<std::tuple<int, bool, std::string, std::string, std::string>> getChannels();
     std::vector<std::tuple<std::string, std::string>> getChannelOperators();
@@ -57,11 +57,6 @@ public:
     std::tuple<int, std::string> getUserPropertyNo(const std::tuple<std::uint8_t, std::string, std::string>& record);
     int setUserFlag(const std::tuple<std::string, std::uint32_t, bool>& record);
     int updateLocation(const std::tuple<std::string, std::string>& record);
-
-    // Singleton-like stuff.
-    static int initUniqueDB();
-    static DataBase *getUniqueDB();
-    static int deinitUniqueDB();
 };
 
 } // namespace FTSSrv2
