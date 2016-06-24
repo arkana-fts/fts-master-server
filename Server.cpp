@@ -135,21 +135,6 @@ FTSSrv2::IClientsManager* FTSSrv2::Server::getClientsManager()
     return dynamic_cast<IClientsManager*>(m_pClientsManager); 
 }
 
-void FTSSrv2::Server::registerClient(Client * in_pClient)
-{
-    m_pClientsManager->add(in_pClient);
-}
-
-void FTSSrv2::Server::unregisterClient(Client * in_pClient)
-{
-    m_pClientsManager->remove(in_pClient);
-}
-
-FTSSrv2::Client * FTSSrv2::Server::findClient(const std::string & in_sName)
-{
-    return m_pClientsManager->find(in_sName);
-}
-
 void FTSSrv2::Server::clearStats()
 {
     Lock l(m_mutex);

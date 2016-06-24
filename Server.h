@@ -48,9 +48,6 @@ public:
     int  setDbgLevel(int dbgLvl) { int oldDbgLvl = m_dbgLvl; m_dbgLvl = dbgLvl; return oldDbgLvl; }
 
     IClientsManager* getClientsManager();
-    void registerClient(Client *in_pClient);
-    void unregisterClient(Client *in_pClient);
-    Client *findClient(const std::string &in_sName);
     DataBase* getDb() { return m_pDataBase; }
 protected:
     /// Protect from copying.
