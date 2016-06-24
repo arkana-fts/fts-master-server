@@ -13,11 +13,6 @@ using namespace FTS;
 using namespace FTSSrv2;
 using namespace std;
 
-FTSSrv2::ChannelManager::ChannelManager()
-{
-    m_lpChannels.clear();
-}
-
 FTSSrv2::ChannelManager::~ChannelManager()
 {
     this->saveChannels( );
@@ -69,16 +64,6 @@ int FTSSrv2::ChannelManager::init()
     }
 
     return ERR_OK;
-}
-
-FTSSrv2::ChannelManager *FTSSrv2::ChannelManager::getManager()
-{
-    return Singleton::getSingletonPtr();
-}
-
-void FTSSrv2::ChannelManager::deinit()
-{
-    delete Singleton::getSingletonPtr();
 }
 
 int FTSSrv2::ChannelManager::loadChannels(void)

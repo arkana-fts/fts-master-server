@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
     }
 
     new ChannelManager();
-    ChannelManager::getManager()->init();
+    ChannelManager::getSingletonPtr()->init();
     new GameManager();
 
     // Begin to listen on all ports.
@@ -296,10 +296,10 @@ int main(int argc, char *argv[])
 
 
     FTSMSGDBG("All clients successfully shot down, waiting for all games to shutdown.", 1);
-    GameManager::deinit();
+    delete GameManager::getSingletonPtr();
 
     FTSMSGDBG("All games successfully shot down, waiting for all channels to shutdown.", 1);
-    ChannelManager::deinit();
+    delete ChannelManager::getSingletonPtr();
     FTSMSGDBG("All channels successfully shut down.", 1);
 
     // We still need to remove the lockfile.

@@ -121,9 +121,9 @@ int FTSSrv2::Client::quit()
         }
 
         // Kill all games hosted by me.
-        Game *pGameHostedByMe = GameManager::getManager()->findGameByHost(m_sNick);
+        Game *pGameHostedByMe = GameManager::getSingletonPtr()->findGameByHost(m_sNick);
         if(pGameHostedByMe) {
-            GameManager::getManager()->remGame(pGameHostedByMe);
+            GameManager::getSingletonPtr()->remGame(pGameHostedByMe);
         }
 
         // Leave the current chat room.
@@ -616,7 +616,7 @@ bool FTSSrv2::Client::onGameIns(Packet *out_pPacket)
     FTSMSGDBG("name: \""+sGameName+"\" ... ", 4);
 
     // Check if the game already exists.
-    if(GameManager::getManager()->findGame(sGameName) != NULL) {
+    if(GameManager::getSingletonPtr()->findGame(sGameName) != NULL) {
         FTSMSG("Game already exists.", MsgType::Error);
         iRet = 1;
         sendPacket( p.append( iRet ) );
@@ -625,7 +625,7 @@ bool FTSSrv2::Client::onGameIns(Packet *out_pPacket)
 
     // Read the data about the game and create it.
     m_pMyGame = new Game(this->getNick(), this->getCounterpartIP(), sGameName, out_pPacket);
-    GameManager::getManager()->addGame(m_pMyGame);
+    GameManager::getSingletonPtr()->addGame(m_pMyGame);
 
     FTSMSGDBG("success", 4);
 
@@ -650,7 +650,7 @@ bool FTSSrv2::Client::onGameRem()
         return false;
     }
 
-    GameManager::getManager()->remGame(m_pMyGame);
+    GameManager::getSingletonPtr()->remGame(m_pMyGame);
 
     // Now I no more have a game!
     m_pMyGame = nullptr;
@@ -670,8 +670,8 @@ bool FTSSrv2::Client::onGameLst()
     FTSMSGDBG(m_sNick+" gets a list of all games ... ", 4);
 
     p.append((int8_t)ERR_OK);
-    p.append((int16_t)GameManager::getManager()->getNGames());
-    GameManager::getManager()->writeListToPacket(&p);
+    p.append((int16_t)GameManager::getSingletonPtr()->getNGames());
+    GameManager::getSingletonPtr()->writeListToPacket(&p);
 
     FTSMSGDBG("success", 4);
 
@@ -688,7 +688,7 @@ bool FTSSrv2::Client::onGameInfo(const string & in_sName)
 
     FTSMSGDBG(m_sNick+" is getting info about the game "+in_sName+" ... ", 4);
 
-    auto pGame = GameManager::getManager()->findGame(in_sName);
+    auto pGame = GameManager::getSingletonPtr()->findGame(in_sName);
     if(!pGame) {
         FTSMSGDBG("failed: game not found.", 4);
         iRet = 1;
@@ -719,7 +719,7 @@ bool FTSSrv2::Client::onGameStart()
         FTSMSG("failed: he doesn't have a game?", MsgType::Error);
         iRet = 12;
     } else {
-        GameManager::getManager()->startGame( m_pMyGame );
+        GameManager::getSingletonPtr()->startGame( m_pMyGame );
         FTSMSGDBG( "success", 4 );
     }
 
@@ -736,12 +736,12 @@ bool FTSSrv2::Client::onChatJoin(const string & in_sChan)
 
     FTSMSGDBG(m_sNick+" is joining chan "+in_sChan+" ... ", 4);
 
-    auto pChannel = ChannelManager::getManager()->findChannel(in_sChan);
+    auto pChannel = ChannelManager::getSingletonPtr()->findChannel(in_sChan);
 
     // If the channel doesn't exist, we gotta create it first.
     if(nullptr == pChannel) {
         FTSMSGDBG("creating the channel ... ", 4);
-        pChannel = ChannelManager::getManager()->createChannel( in_sChan, this );
+        pChannel = ChannelManager::getSingletonPtr()->createChannel( in_sChan, this );
         if(pChannel == nullptr) {
             FTSMSGDBG("error!", 4);
             iRet = -100;
@@ -999,7 +999,7 @@ bool FTSSrv2::Client::onChatPublics()
     FTSMSGDBG(m_sNick+" is listing public channels ... ", 4);
 
     // Get the number and the list of public channels.
-    auto lpChannels = ChannelManager::getManager()->getPublicChannels();
+    auto lpChannels = ChannelManager::getSingletonPtr()->getPublicChannels();
     uint32_t nChans = (uint32_t)lpChannels.size();
 
     FTSMSGDBG("success (there are "+toString(nChans)+" public channels)", 4);
@@ -1116,7 +1116,7 @@ bool FTSSrv2::Client::onChatListMyChans()
 
     FTSMSGDBG(m_sNick+" wants a list of his chans ... ", 4);
 
-    std::list<string> sChans = ChannelManager::getManager()->getUserChannels(this->getNick());
+    std::list<string> sChans = ChannelManager::getSingletonPtr()->getUserChannels(this->getNick());
 
     p.append(iRet);
     p.append((uint32_t)sChans.size());
@@ -1138,12 +1138,12 @@ bool FTSSrv2::Client::onChatDestroyChan(const string &in_sChan)
 
     FTSMSGDBG(m_sNick+" wants to destroy the channel "+in_sChan+" ... ", 4);
 
-    Channel *pChan = ChannelManager::getManager()->findChannel(in_sChan);
+    Channel *pChan = ChannelManager::getSingletonPtr()->findChannel(in_sChan);
     if(!pChan) {
         iRet = -1;
         FTSMSGDBG("failed: does not exist!", 4);
     } else {
-        iRet = ChannelManager::getManager()->removeChannel(pChan, this->getNick());
+        iRet = ChannelManager::getSingletonPtr()->removeChannel(pChan, this->getNick());
         FTSMSGDBG( iRet == ERR_OK ? "success" : "failed", 4);
     }
 

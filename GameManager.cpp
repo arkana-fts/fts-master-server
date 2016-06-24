@@ -79,15 +79,3 @@ int FTSSrv2::GameManager::writeListToPacket(Packet *in_pPacket)
     return ERR_OK;
 }
 
-FTSSrv2::GameManager *FTSSrv2::GameManager::getManager()
-{
-    return Singleton::getSingletonPtr();
-}
-
-void FTSSrv2::GameManager::deinit()
-{
-    delete Singleton::getSingletonPtr();
-}
-
-
-

@@ -36,10 +36,6 @@ namespace FTSSrv2 {
         {
             return ( int16_t ) m_lpGames.size();
         }
-
-        // Singleton-like stuff.
-        static GameManager *getManager();
-        static void deinit();
     };
 
 }

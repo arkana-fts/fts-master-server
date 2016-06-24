@@ -1,7 +1,7 @@
-#ifndef D_CHANNELMANAGER_H
-#define D_CHANNELMANAGER_H
-
+#pragma once
 #include <list>
+#include <string>
+#include <cinttypes>
 
 #include "Mutex.h"
 #include "Singleton.h"
@@ -15,14 +15,10 @@ namespace FTSSrv2 {
     {
 
     public:
-        ChannelManager();
+        ChannelManager() = default;
         virtual ~ChannelManager();
 
-        // Singleton-like stuff.
         int init();
-        static ChannelManager *getManager();
-        static void deinit();
-
 
         Channel *createChannel( const std::string &in_sName, const Client *in_pCreater, bool in_bPublic = false );
         int removeChannel( Channel *out_pChannel, const std::string &in_sWhoWantsIt );
@@ -38,11 +34,10 @@ namespace FTSSrv2 {
     private:
         int loadChannels();
         int saveChannels();
-        uint32_t countUserChannels(const std::string &in_sUserName);
+        std::uint32_t countUserChannels(const std::string &in_sUserName);
 
         std::list<Channel *>m_lpChannels; ///< This list contains all existing channels.
         Mutex m_mutex; ///< Mutex for accessing me.
     };
 
 }
-#endif

@@ -288,7 +288,7 @@ int FTSSrv2::Channel::kick( const Client *in_pFrom, const string & in_sUser )
 
     // Kick him out to the default channel.
     quit(pKicked);
-    auto defaultChannel = FTSSrv2::ChannelManager::getManager()->getDefaultChannel();
+    auto defaultChannel = FTSSrv2::ChannelManager::getSingletonPtr()->getDefaultChannel();
     defaultChannel->join(pKicked);
 
     // Tell him about it.
