@@ -15,6 +15,7 @@ using owner = T;
 
 namespace FTSSrv2
 {
+class IClientsManager;
 class ClientsManager;
 class Client;
 class DataBase;
@@ -46,6 +47,7 @@ public:
     int  getDbgLevel() const { return m_dbgLvl; }
     int  setDbgLevel(int dbgLvl) { int oldDbgLvl = m_dbgLvl; m_dbgLvl = dbgLvl; return oldDbgLvl; }
 
+    IClientsManager* getClientsManager();
     void registerClient(Client *in_pClient);
     void unregisterClient(Client *in_pClient);
     Client *findClient(const std::string &in_sName);

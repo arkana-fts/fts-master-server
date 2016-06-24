@@ -23,7 +23,7 @@ FTSSrv2::ClientsManager::~ClientsManager()
     }
 }
 
-void FTSSrv2::ClientsManager::registerClient(FTSSrv2::Client *in_pClient)
+void FTSSrv2::ClientsManager::add(FTSSrv2::Client *in_pClient)
 {
     // We store them only in lowercase because nicknames are case insensitive.
     // So we can search for some guy more easily.
@@ -31,7 +31,7 @@ void FTSSrv2::ClientsManager::registerClient(FTSSrv2::Client *in_pClient)
     m_mClients[toLower(in_pClient->getNick())] = in_pClient;
 }
 
-void FTSSrv2::ClientsManager::unregisterClient(FTSSrv2::Client *in_pClient)
+void FTSSrv2::ClientsManager::remove(FTSSrv2::Client *in_pClient)
 {
     Lock l(m_mutex);
 
@@ -43,7 +43,7 @@ void FTSSrv2::ClientsManager::unregisterClient(FTSSrv2::Client *in_pClient)
     }
 }
 
-FTSSrv2::Client *FTSSrv2::ClientsManager::findClient(const string &in_sName)
+FTSSrv2::Client *FTSSrv2::ClientsManager::find(const string &in_sName)
 {
     Lock l(m_mutex);
     auto i = m_mClients.find(toLower(in_sName));

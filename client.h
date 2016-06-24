@@ -1,11 +1,12 @@
 #ifndef D_CLIENT_H
-#  define D_CLIENT_H
+#define D_CLIENT_H
 
-#  include <list>
-#  include <map>
+#include <list>
+#include <map>
 
-#  include "Mutex.h"
-#  include <connection.h>
+#include <connection.h>
+#include "Mutex.h"
+#include "ClientsManager.h"
 
 namespace FTS {
     class Packet;
@@ -19,19 +20,10 @@ namespace FTSSrv2 {
     class DataBase;
 
 class Client {
-private:
-    bool m_bLoggedIn = false;                   ///< Whether the user is logged in or not.
-    std::string m_sNick;                        ///< The nickname of the user that is logged on.
-    std::string m_sPassMD5;                     ///< The MD5 encoded password of the user that is logged on.
-    Game *m_pMyGame = nullptr;                  ///< The game I have started or I am in. NULL else.
-    Channel *m_pMyChannel = nullptr;            ///< The chat channel the player is currently in.
-    Mutex m_mutex;                              ///< Protect the sendPacket, it is used by other clients to send a msg directly.
-    FTS::Connection *m_pConnection = nullptr;   ///< The connection to my client.
-    DataBase* m_DataBase = nullptr;             ///< The data base object.
 public:
     Client() = delete;
     Client( const Client& other ) = delete;
-    Client(FTS::Connection *in_pConnection, DataBase* in_pDataBase);
+    Client(FTS::Connection *in_pConnection, DataBase* in_pDataBase, IClientsManager* pClientManager);
     virtual ~Client();
 
     static void starter(Client *in_pThis);
@@ -88,7 +80,15 @@ private:
     bool onChatListMyChans();
     bool onChatDestroyChan(const std::string &in_sChan);
 
-
+    bool m_bLoggedIn = false;                   ///< Whether the user is logged in or not.
+    std::string m_sNick;                        ///< The nickname of the user that is logged on.
+    std::string m_sPassMD5;                     ///< The MD5 encoded password of the user that is logged on.
+    Game *m_pMyGame = nullptr;                  ///< The game I have started or I am in. NULL else.
+    Channel *m_pMyChannel = nullptr;            ///< The chat channel the player is currently in.
+    Mutex m_mutex;                              ///< Protect the sendPacket, it is used by other clients to send a msg directly.
+    FTS::Connection *m_pConnection = nullptr;   ///< The connection to my client.
+    DataBase* m_DataBase = nullptr;             ///< The data base object.
+    IClientsManager* m_pClientManager = nullptr;///< The client manager interface to de-/register it self.
 };
 
 

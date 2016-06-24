@@ -57,12 +57,13 @@ std::string DSRV_CHAT_TYPE_toString( DSRV_CHAT_TYPE type)
     return s;
 }
 
-FTSSrv2::Client::Client(Connection *in_pConnection, DataBase* in_pDataBase)
+FTSSrv2::Client::Client(Connection *in_pConnection, DataBase* in_pDataBase, IClientsManager* in_ClientManager)
     : m_bLoggedIn(false)
     , m_pMyGame(nullptr)
     , m_pMyChannel(nullptr)
     , m_pConnection(in_pConnection)
     , m_DataBase(in_pDataBase)
+    , m_pClientManager(in_ClientManager)
 {
 }
 
@@ -145,7 +146,7 @@ int FTSSrv2::Client::quit()
     m_sPassMD5 = "";
     m_bLoggedIn = false;
 
-    FTSSrv2::Server::getSingletonPtr()->unregisterClient(this);
+    m_pClientManager->remove(this);
 
     return iRet;
 }
@@ -363,7 +364,7 @@ bool FTSSrv2::Client::onLogin(const string & in_sNick, const string & in_sMD5)
         m_sNick = in_sNick;
         m_sPassMD5 = in_sMD5;
         m_bLoggedIn = true;
-        FTSSrv2::Server::getSingletonPtr()->registerClient( this );
+        m_pClientManager->add( this );
 
         FTSMSGDBG( "success", 4 );
     } else {
@@ -835,7 +836,7 @@ bool FTSSrv2::Client::onChatSend(Packet *out_pPacket)
                 string sTo = trim( out_pPacket->get_string() );
                 FTSMSGDBG(m_sNick + ": Target is: " + sTo + ".", 4 );
 
-                auto pTo = FTSSrv2::Server::getSingletonPtr()->findClient( sTo );
+                auto pTo = m_pClientManager->find( sTo );
                 if( pTo == nullptr ) {
                     // User not online, not existent : send a error.
                     iRet = -3;
