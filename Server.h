@@ -7,6 +7,12 @@
 #include "Singleton.h"
 #include "Mutex.h"
 
+// Taken from guidline support library (https://github.com/Microsoft/GSL/blob/master/include/gsl.h) to make ownership explicit.
+// The GSL is propagated by ISOCPP committee.
+template <class T>
+using owner = T;
+//-----------------
+
 namespace FTSSrv2
 {
 class ClientsManager;
@@ -64,8 +70,8 @@ protected:
 private:
     std::string tryFile(const std::string &in_sFilename, const std::string &in_sDir) const;
 
-    ClientsManager* m_pClientsManager = nullptr; // Server owns the ptr
-    DataBase*       m_pDataBase = nullptr;       // Server owns the ptr
+    owner<ClientsManager*> m_pClientsManager = nullptr; // Server owns the ptr
+    owner<DataBase*>       m_pDataBase = nullptr;       // Server owns the ptr
     PacketStats m_totalPackets;
 };
 
