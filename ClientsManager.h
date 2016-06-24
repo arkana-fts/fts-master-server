@@ -1,17 +1,10 @@
-#ifndef D_CLIENTSMANAGER_H
-#define D_CLIENTSMANAGER_H
+#pragma once 
 
-#include <list>
 #include <map>
 #include <string>
 
 #include "Mutex.h"
 #include "ICLientsManager.h"
-
-namespace FTS {
-    class Packet;
-    class Connection;
-}
 
 namespace FTSSrv2 {
     class Client;
@@ -41,4 +34,3 @@ namespace FTSSrv2 {
 
 }
 
-#endif
