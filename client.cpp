@@ -145,7 +145,7 @@ int FTSSrv2::Client::quit()
     m_sPassMD5 = "";
     m_bLoggedIn = false;
 
-    FTSSrv2::Server::get()->unregisterClient(this);
+    FTSSrv2::Server::getSingletonPtr()->unregisterClient(this);
 
     return iRet;
 }
@@ -363,7 +363,7 @@ bool FTSSrv2::Client::onLogin(const string & in_sNick, const string & in_sMD5)
         m_sNick = in_sNick;
         m_sPassMD5 = in_sMD5;
         m_bLoggedIn = true;
-        FTSSrv2::Server::get()->registerClient( this );
+        FTSSrv2::Server::getSingletonPtr()->registerClient( this );
 
         FTSMSGDBG( "success", 4 );
     } else {
@@ -835,7 +835,7 @@ bool FTSSrv2::Client::onChatSend(Packet *out_pPacket)
                 string sTo = trim( out_pPacket->get_string() );
                 FTSMSGDBG(m_sNick + ": Target is: " + sTo + ".", 4 );
 
-                auto pTo = FTSSrv2::Server::get()->findClient( sTo );
+                auto pTo = FTSSrv2::Server::getSingletonPtr()->findClient( sTo );
                 if( pTo == nullptr ) {
                     // User not online, not existent : send a error.
                     iRet = -3;

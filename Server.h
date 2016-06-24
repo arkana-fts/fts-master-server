@@ -25,7 +25,6 @@ public:
 
     Server(std::string in_logDir, bool in_bVerbose, int in_dbgLevel, DataBase* pDataBase);
     virtual ~Server();
-    static Server* get() { return Server::getSingletonPtr(); }
     std::string getLogfilename(void) const { return m_sLogFile; };
     std::string getErrfilename(void) const { return m_sErrFile; };
     std::string getNetLogfilename(void) const { return m_sNetLogFile; };
