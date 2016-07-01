@@ -85,7 +85,6 @@ int FTSSrv2::Channel::quit(Client *in_pUser)
 
 int FTSSrv2::Channel::save()
 {
-    string sQuery;
     Lock l(m_mutex);
 
     // Create this channel from scratch.

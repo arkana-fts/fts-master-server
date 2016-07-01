@@ -933,7 +933,6 @@ bool FTSSrv2::Client::onChatMottoGet()
 bool FTSSrv2::Client::onChatMottoSet(const string & in_sMotto)
 {
     Packet p(DSRV_MSG_CHAT_MOTTO_SET);
-    string sMotto;
     int8_t iRet = ERR_OK;
 
     FTSMSGDBG(m_sNick+" is setting his channel motto to "+in_sMotto+"... ", 4);
