@@ -269,7 +269,7 @@ int FTSSrv2::DataBase::updatePlayerSet(const std::tuple<std::uint8_t, std::strin
         FTSMSGDBG("success", 4);
     }
     free(pRes);
-    return ERR_OK;
+    return iRet;
 }
 
 std::tuple<int, std::string>  FTSSrv2::DataBase::getUserPropertyNo(const std::tuple<std::uint8_t, std::string, std::string>& record)
@@ -323,7 +323,7 @@ int FTSSrv2::DataBase::updateLocation(const std::tuple<std::string, std::string>
 
 int FTSSrv2::DataBase::init()
 {
-    if(nullptr == (m_pSQL = (db_ptr*)mysql_init(nullptr))) {
+    if(nullptr == (m_pSQL = reinterpret_cast<db_ptr*>(mysql_init(nullptr)))) {
         FTSMSG("[ERROR] MySQL init.", MsgType::Error);
         return -1;
     }
@@ -426,7 +426,7 @@ bool FTSSrv2::DataBase::query(db_result *&out_pRes, std::string in_sQuery)
         return false;
     }
 
-    out_pRes = (db_result*)mysql_store_result(pSQL);
+    out_pRes = reinterpret_cast<db_result*>(mysql_store_result(pSQL));
     if(out_pRes == nullptr && mysql_field_count(pSQL) != 0) {
         // Errors occured during the query. (connection ? too large result ?)
         FTSMSG("[ERROR] MySQL field count\nQuery string: "+ in_sQuery +"\nError: "+this->getError(), MsgType::Error);
