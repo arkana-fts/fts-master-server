@@ -178,11 +178,10 @@ int main(int argc, char *argv[])
 
     // Lockfile checking to start only once.
     // =====================================
-    int lfp = -1;
 #if defined(_DEBUG) && defined(WIN32)
 #else
     // Check the lockfile
-    lfp = open(sLockFile.c_str(),O_RDONLY);
+    int lfp = open(sLockFile.c_str(),O_RDONLY);
 
     if(lfp >= 0) {
         std::cout << "A lockfile already exists, this usually means that"

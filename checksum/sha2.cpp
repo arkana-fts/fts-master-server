@@ -519,30 +519,28 @@ void sha512_transf(sha512_ctx * ctx, const unsigned char *message,
 {
     uint64 w[80];
     uint64 wv[8];
-    uint64 t1, t2;
     const unsigned char *sub_block;
-    int i, j;
 
-    for(i = 0; i < (int)block_nb; i++) {
+    for(int i = 0; i < (int)block_nb; i++) {
         sub_block = message + (i << 7);
 
 #ifndef UNROLL_LOOPS
-        for(j = 0; j < 16; j++) {
+        for(int j = 0; j < 16; j++) {
             PACK64(&sub_block[j << 3], &w[j]);
         }
 
-        for(j = 16; j < 80; j++) {
+        for(int j = 16; j < 80; j++) {
             SHA512_SCR(j);
         }
 
-        for(j = 0; j < 8; j++) {
+        for(int j = 0; j < 8; j++) {
             wv[j] = ctx->h[j];
         }
 
-        for(j = 0; j < 80; j++) {
-            t1 = wv[7] + SHA512_F2(wv[4]) + CH(wv[4], wv[5], wv[6])
+        for(int j = 0; j < 80; j++) {
+            uint64 t1 = wv[7] + SHA512_F2(wv[4]) + CH(wv[4], wv[5], wv[6])
                 + sha512_k[j] + w[j];
-            t2 = SHA512_F1(wv[0]) + MAJ(wv[0], wv[1], wv[2]);
+            uint64 t2 = SHA512_F1(wv[0]) + MAJ(wv[0], wv[1], wv[2]);
             wv[7] = wv[6];
             wv[6] = wv[5];
             wv[5] = wv[4];
@@ -553,7 +551,7 @@ void sha512_transf(sha512_ctx * ctx, const unsigned char *message,
             wv[0] = t1 + t2;
         }
 
-        for(j = 0; j < 8; j++) {
+        for(int j = 0; j < 8; j++) {
             ctx->h[j] += wv[j];
         }
 #else
@@ -648,7 +646,7 @@ void sha512_transf(sha512_ctx * ctx, const unsigned char *message,
         wv[6] = ctx->h[6];
         wv[7] = ctx->h[7];
 
-        j = 0;
+        int j = 0;
 
         do {
             SHA512_EXP(0, 1, 2, 3, 4, 5, 6, 7, j);
