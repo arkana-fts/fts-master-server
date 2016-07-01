@@ -25,7 +25,7 @@ public:
 class Lock {
     Mutex& m;
 public:
-    Lock(Mutex& m) : m( m ) { m.lock(); }
+    explicit Lock(Mutex& m) : m( m ) { m.lock(); }
     ~Lock() { m.unlock(); }
 };
 
