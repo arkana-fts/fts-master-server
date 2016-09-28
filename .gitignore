@@ -12,6 +12,7 @@
 *.opensdf
 *.psess
 *.vspx
+*.VC.db
 
 # Ignore the VC++ build folders
 **/Debug_Static/
@@ -29,9 +30,8 @@
 *.gch
 
 # Ignore CMake build files
-build/
-CMakeFiles
-linux
+**/build
+**/linux
 
 # Ignore profiler and debugger files
 gmon.out
@@ -46,6 +46,7 @@ gmon.out
 *.dll
 
 # Other artifacts not to track
-msg.txt
+*.txt
 *.org
 **/cgi/
+*.cppcheck
