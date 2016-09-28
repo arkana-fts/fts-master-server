@@ -7,7 +7,7 @@
 #include "Singleton.h"
 #include "Mutex.h"
 
-// Taken from guidline support library (https://github.com/Microsoft/GSL/blob/master/include/gsl.h) to make ownership explicit.
+// Taken from guideline support library (https://github.com/Microsoft/GSL/blob/master/include/gsl.h) to make ownership explicit.
 // The GSL is propagated by ISOCPP committee.
 template <class T>
 using owner = T;

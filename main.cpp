@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
         ~guard()
         {
             SocketCleanup();
-            // Shutdown all connectons to all clients that still exist.
+            // Shutdown all connections to all clients that still exist.
             FTSMSGDBG("Waiting for all clients to shutdown.", 1);
             delete Server::getSingletonPtr();
             delete outs;
@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
     // Unfortunately the redirection to the log file is hidden by the netlib init.
     // Internally the lib init sets the stream to the logger.
     // From then on all FTSMSG... goes to the out stream (if set).
-    // TODO: Change the implementation to make this behaviour explicit.
+    // TODO: Change the implementation to make this behavior explicit.
     if( !FTS::NetworkLibInit(dbgLevel, outs) ) {
         std::cout << "Fatal Error: Can't initialize the FTS network library. Abort\n";
         return EXIT_FAILURE;

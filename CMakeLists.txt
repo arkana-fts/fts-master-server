@@ -3,7 +3,7 @@ project(fts-server)
 
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
-# Setup the make environement. #
+# Setup the make environment. #
 ################################
 cmake_minimum_required(VERSION 3.1)
 
@@ -47,7 +47,7 @@ else()
     set_target_properties( fts-net PROPERTIES IMPORTED_LOCATION_RELEASE ${fts-network_LIB_DIR}/libfts-net.a)
 endif()
 
-# Put all sourcefiles into one variable. #
+# Put all source files into one variable. #
 ##########################################
 set(src main.cpp Server.cpp channel.cpp client.cpp db.cpp db_build.cpp dummy_types.cpp game.cpp  
         ClientsManager.cpp ChannelManager.cpp GameManager.cpp
@@ -70,7 +70,7 @@ else()
     endif()
 endif()
 
-# Compiler-dependent and build-dependend flags:
+# Compiler-dependent and build-depended flags:
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 endif()
@@ -78,7 +78,7 @@ endif()
 # The configuration settings.
 set(RUN_AS_USER "fts" CACHE STRING "The user as which to run the server, in case root starts it.")
 
-set(LOG_MAX_LOGFILE_KBYTES 10240 CACHE STRING "Maximum lenght of a logfile, in kb, before a new one is used.")
+set(LOG_MAX_LOGFILE_KBYTES 10240 CACHE STRING "Maximum length of a logfile, in kb, before a new one is used.")
 if(MSVC)
     set(LOG_DIR "$ENV{LOCALAPPDATA}/fts/log" CACHE PATH "Where to write the logfiles?")
 else()
@@ -102,7 +102,7 @@ set(CHAT_DEVS_CHANNEL_NAME "Dev's Channel" CACHE STRING "The name of the develop
 set(CHAT_DEVS_CHANNEL_MOTTO "The channel for the developers of Arkana-FTS and the players wanting to know more." CACHE STRING "The motto of the dev's channel")
 set(CHAT_DEVS_CHANNEL_ADMIN "Pompei2" CACHE STRING "The user who should be admin of the dev's channel.")
 set(CHAT_DEFAULT_MOTTO "Arkana-FTS Rules!" CACHE STRING "The motto any newly created channel has by default.")
-set(CHAT_MAX_CHANS_PER_USER "3" CACHE STRING "The maximum amount of channes a user can create/own.")
+set(CHAT_MAX_CHANS_PER_USER "3" CACHE STRING "The maximum amount of channels a user can create/own.")
 
 configure_file("${fts-server_SOURCE_DIR}/config.h.in" "config.h" ESCAPE_QUOTES)
 
