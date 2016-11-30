@@ -243,11 +243,21 @@ int main(int argc, char *argv[])
             FTSMSGDBG("Waiting for all clients to shutdown.", 1);
             delete Server::getSingletonPtr();
             delete outs;
+            // We still need to remove the lockfile.
+            FTSMSGDBG("Removing the lockfile " + sLockFile + ".\n", 1);
+            if (0 != remove(sLockFile.c_str())) {
+                FTSMSG("Error removing the lockfile " + sLockFile +
+                    ". If the file still exists, you should try to remove "
+                    "it by hand, so the server will start next time.\n", MsgType::Error);
+                FTSMSG("The Error Text is " + std::string(strerror(errno)), MsgType::Error);
+            }
         }
         std::ofstream * outs = nullptr;
+        std::string sLockFile;
     };
     guard main_resources;
     main_resources.outs = outs;
+    main_resources.sLockFile = sLockFile;
 
     // Unfortunately the redirection to the log file is hidden by the netlib init.
     // Internally the lib init sets the stream to the logger.
@@ -297,14 +307,6 @@ int main(int argc, char *argv[])
     delete ChannelManager::getSingletonPtr();
     FTSMSGDBG("All channels successfully shut down.", 1);
 
-    // We still need to remove the lockfile.
-    FTSMSGDBG("Removing the lockfile "+sLockFile+".\n", 1);
-    if(0 != remove(sLockFile.c_str())) {
-        FTSMSG("Error removing the lockfile "+sLockFile+
-               ". If the file still exists, you should try to remove "
-               "it by hand, so the server will start next time.\n", MsgType::Error);
-        FTSMSG( "The Error Text is " + std::string( strerror( errno ) ), MsgType::Error );
-    }
 
     FTSMSGDBG("Everything done, bye\n", 1);
 
