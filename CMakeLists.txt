@@ -26,6 +26,7 @@ if(MSVC)
             STRING(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
         ENDIF()
     ENDFOREACH(flag_var)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 endif()
 
 # The threads library to use and the mysql client library. #
