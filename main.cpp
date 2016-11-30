@@ -178,12 +178,9 @@ int main(int argc, char *argv[])
 
     // Lockfile checking to start only once.
     // =====================================
-#if defined(_DEBUG) && defined(WIN32)
-#else
     // Check the lockfile
-    int lfp = open(sLockFile.c_str(),O_RDONLY);
-
-    if(lfp >= 0) {
+    ifstream lf(sLockFile.c_str());
+    if(lf.is_open() /*lfp >= 0*/) {
         std::cout << "A lockfile already exists, this usually means that"
                " the server is already started. Please first stop the"
                " server using the -k switch or delete the lockfile if"
@@ -192,13 +189,12 @@ int main(int argc, char *argv[])
     } 
 
     // Create the lockfile.
-    lfp = open(sLockFile.c_str(),O_RDWR|O_CREAT,0640);
-    if ( lfp < 0 ) {
+    ofstream lfo(sLockFile.c_str());
+    if ( !lfo.is_open() /*lfp < 0*/ ) {
         std::cerr << "unable to create lock file " << sLockFile << " (" << strerror(errno) << ")" << std::endl;
         exit(EXIT_FAILURE);
     }
-    close( lfp );
-#endif
+    lfo.close();
 
     // Daemonize if wanted.
     if(bDaemon)
