@@ -2,14 +2,48 @@
 #include "catch.hpp"
 #include <utility>
 #include "../Server.h"
+#include "../ClientsManager.h"
+#include "../db.h"
 
 using namespace FTS;
 using namespace std;
 
+//----------------------------------------------
+// The following lines are to fake the real implementation, which are not needed for the tests.
+namespace FTSSrv2 {
+   DataBase::~DataBase() {}
+
+   int DataBase::init() { return 0; }
+
+   std::vector<std::tuple<int, bool, std::string, std::string, std::string>> DataBase::getChannels() { return std::vector<std::tuple<int, bool, std::string, std::string, std::string>>(); }
+   std::vector<std::tuple<std::string, std::string>> DataBase::getChannelOperators() { return std::vector<std::tuple<std::string, std::string>>(); }
+   bool DataBase::channelCreate(const std::tuple<bool, std::string, std::string, std::string>& record) { return false; }
+   bool DataBase::channelUpdate(const std::tuple<int, bool, std::string, std::string, std::string>& record) { return false; }
+   void DataBase::channelAddOp(const std::tuple<std::string, int>& record) {}
+   int DataBase::channelDestroy(const std::tuple<std::string, std::string>& record) { return 0; }
+   int DataBase::disconnect(const std::tuple<std::string, std::string, std::string, int>& record) { return 0; }
+   int DataBase::connect(const std::tuple<std::string, std::string, std::string, int>& record) { return 0; }
+   int DataBase::signup(const std::tuple<std::string, std::string, std::string>& record) { return 0; }
+   int DataBase::insertFeedback(const std::tuple<std::string, std::string>& record) { return 0; }
+   int DataBase::updatePlayerSet(const std::tuple<std::uint8_t, std::string, std::string, std::string>& record) { return 0; }
+   std::tuple<int, std::string> DataBase::getUserPropertyNo(const std::tuple<std::uint8_t, std::string, std::string>& record) { return std::tuple<int, std::string>(); }
+   int DataBase::setUserFlag(const std::tuple<std::string, std::uint32_t, bool>& record) { return 0; }
+   int DataBase::updateLocation(const std::tuple<std::string, std::string>& record) { return 0; }
+}
+
+namespace FTSSrv2 {
+   ClientsManager::~ClientsManager() {}
+   void ClientsManager::add(Client *in_pClient) {}
+   void ClientsManager::remove(Client *in_pClient) {}
+   Client *ClientsManager::find(const std::string &in_sName) { return nullptr; }
+}
+//----------------------------------------------
+
+
 class TestServer : public FTSSrv2::Server
 {
 public:
-   TestServer( std::string in_logDir, bool in_bVerbose, int in_dbgLevel ) : FTSSrv2::Server(in_logDir, in_bVerbose, in_dbgLevel) {};
+   TestServer( std::string in_logDir, bool in_bVerbose, int in_dbgLevel ) : FTSSrv2::Server(in_logDir, in_bVerbose, in_dbgLevel, nullptr ) {};
    virtual ~TestServer() {};
 };
 
