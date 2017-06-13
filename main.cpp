@@ -14,6 +14,11 @@
 #  include <WinSock2.h>
 #  pragma comment(lib, "Ws2_32.lib")
 #  pragma warning (disable: 4996) // disable complaining about not ISO C++ conformant name open etc.
+#  if defined(_DEBUG)
+#    define _CRTDBG_MAP_ALLOC  
+#    include <stdlib.h>  
+#    include <crtdbg.h>
+#  endif
 #else
 #  include <signal.h>
 #  include <pwd.h>
@@ -101,6 +106,7 @@ int main(int argc, char *argv[])
 #if defined(_DEBUG) && defined(_WIN32)
     int flag = _CrtSetDbgFlag( _CRTDBG_REPORT_FLAG );
     flag |= _CRTDBG_LEAK_CHECK_DF; // Turn on leak-checking bit
+    flag |= _CRTDBG_ALLOC_MEM_DF; // Turn on leak-checking bit
     _CrtSetDbgFlag( flag );
     //_CrtSetBreakAlloc( 5382 ); // Comment or un-comment on need basis
 #endif
