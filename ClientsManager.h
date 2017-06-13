@@ -26,7 +26,6 @@ namespace FTSSrv2 {
         Client *find( const std::string &in_sName );
 
     private:
-        void deleteClient(const std::string &in_sName);
 
         std::map<std::string, Client *>m_mClients;
         Mutex m_mutex;

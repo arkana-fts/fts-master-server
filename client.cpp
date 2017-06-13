@@ -77,6 +77,7 @@ void FTSSrv2::Client::starter(Client *in_pThis)
 {
     FTSSrv2::Client *pThis = in_pThis;
     pThis->run();
+    delete pThis;
 }
 
 int FTSSrv2::Client::run()
@@ -96,7 +97,6 @@ int FTSSrv2::Client::run()
         auto rc = this->workPacket( pPack );
         delete pPack;
         if(!rc) {
-            m_pConnection->disconnect();
             break;
         }
     }
@@ -104,7 +104,6 @@ int FTSSrv2::Client::run()
     // Disconnect the player.
     this->quit();
     Server::getSingleton().addStats( m_pConnection->getPacketStats() );
-    delete this;
     return 0;
 }
 
@@ -150,13 +149,6 @@ int FTSSrv2::Client::quit()
     m_pClientManager->remove(this);
 
     return iRet;
-}
-
-int FTSSrv2::Client::tellToQuit()
-{
-    // Closing the connection makes the "quitting"-stone rolling.
-    m_pConnection->disconnect();
-    return ERR_OK;
 }
 
 // Returning true keeps the connection up. False would close the connection.

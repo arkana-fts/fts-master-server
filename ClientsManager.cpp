@@ -18,8 +18,8 @@ using namespace std;
 
 FTSSrv2::ClientsManager::~ClientsManager()
 {
-    while(!m_mClients.empty()) {
-        deleteClient(m_mClients.begin()->first);
+    for(const auto& i : m_mClients) {
+        delete i.second;
     }
 }
 
@@ -53,18 +53,5 @@ FTSSrv2::Client *FTSSrv2::ClientsManager::find(const string &in_sName)
     }
 
     return i->second;
-}
-
-void FTSSrv2::ClientsManager::deleteClient(const string &in_sName)
-{
-    Lock l(m_mutex);
-    auto i = m_mClients.find(toLower(in_sName));
-
-    if(i == m_mClients.end()) {
-        return ;
-    }
-
-    FTSSrv2::Client* pClient = i->second;
-    pClient->tellToQuit();
 }
 

@@ -29,7 +29,6 @@ public:
     int run();
     bool workPacket(FTS::Packet *in_pPacket);
     int quit();
-    int tellToQuit();
 
     inline std::string getNick() const { return m_sNick; };
     inline bool isLoggedIn() const { return m_bLoggedIn; };
