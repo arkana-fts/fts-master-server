@@ -11,8 +11,6 @@
 
 
 #if defined(_WIN32)
-#  include <WinSock2.h>
-#  pragma comment(lib, "Ws2_32.lib")
 #  pragma warning (disable: 4996) // disable complaining about not ISO C++ conformant name open etc.
 #  if defined(_DEBUG)
 #    define _CRTDBG_MAP_ALLOC  
@@ -77,26 +75,6 @@ std::string getNextToken(stringstream& sb, char delimiter = ' ')
     } while( token.empty() && !sb.eof() );
 
     return token;
-}
-
-void SocketStartup()
-{
-#if defined(_WIN32)
-    //----------------------
-    // Initialize Winsock.
-    WSADATA wsaData;
-    int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if( iResult != NO_ERROR ) {
-        std::cout << "WSAStartup failed with error: " << iResult << "\n";
-    }
-#endif
-}
-
-void SocketCleanup()
-{
-#if defined(_WIN32)
-    WSACleanup();
-#endif
 }
 
 }
@@ -240,11 +218,9 @@ int main(int argc, char *argv[])
     {
         guard()
         {
-            SocketStartup();
         }
         ~guard()
         {
-            SocketCleanup();
             // Shutdown all connections to all clients that still exist.
             FTSMSGDBG("Waiting for all clients to shutdown.", 1);
             delete Server::getSingletonPtr();
