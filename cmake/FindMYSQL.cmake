@@ -33,23 +33,27 @@ find_path(MYSQL_INCLUDE_DIR mysql.h
 	$ENV{MYSQL_DIR}/include/mysql
 	)
 
-if( MSVC )
-# Set lib path suffixes
-# dist = for mysql binary distributions
-# build = for custom built tree
-	find_library(MYSQL_LIBRARIES NAMES mysqlclient
-		PATHS
+if( WIN32 )
+    # Set lib path suffixes
+	find_library( MYSQL_LIB1 NAMES libmysql.lib
+        PATHS
 		$ENV{MYSQL_DIR}/lib
 		${ProgramPath}/MySQL/*/lib
 		$ENV{SystemDrive}/MySQL/*/lib
 	)
-	
-	find_path( MYSQL_LIBRARIES_DIR mysqlclient.lib
+	find_library( MYSQL_LIB2 NAMES mysqlclient.lib
+        PATHS
 		$ENV{MYSQL_DIR}/lib
 		${ProgramPath}/MySQL/*/lib
 		$ENV{SystemDrive}/MySQL/*/lib
 	)
-else(MSVC)
+    set(MYSQL_LIBRARIES ${MYSQL_LIB1} ${MYSQL_LIB2})
+    find_path( MYSQL_LIBRARIES_DIR mysqlclient.lib
+		$ENV{MYSQL_DIR}/lib
+		${ProgramPath}/MySQL/*/lib
+		$ENV{SystemDrive}/MySQL/*/lib
+	)
+else(WIN32)
 	find_library(MYSQL_LIBRARIES NAMES mysqlclient_r
 		PATHS
 		/usr/lib
@@ -67,7 +71,7 @@ else(MSVC)
 		/usr/local/lib64/mysql
 		/usr/lib/x86_64-linux-gnu  # Ubuntu
         )
-endif(MSVC)
+endif(WIN32)
 
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(MYSQL DEFAULT_MSG MYSQL_LIBRARIES MYSQL_LIBRARIES_DIR MYSQL_INCLUDE_DIR)
