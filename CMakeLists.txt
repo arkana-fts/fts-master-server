@@ -1,5 +1,8 @@
 
 project(fts-server)
+message(STATUS "======================")
+message(STATUS "CONFIGURING FTS-SERVER")
+message(STATUS "======================")
 
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -26,7 +29,6 @@ if(MSVC)
             STRING(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
         ENDIF()
     ENDFOREACH(flag_var)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 endif()
 
 # The threads library to use and the mysql client library. #
@@ -36,9 +38,10 @@ find_package(MYSQL REQUIRED)
 
 # Add fts-networking stuff #
 ############################
-set(fts-network_SOURCE_DIR CACHE STRING "Location of the FTS networking library.")
-set(fts-network_LIB_DIR "${fts-network_SOURCE_DIR}/lib")
-include_directories("${fts-network_SOURCE_DIR}/include")
+set(fts-network CACHE STRING "Location of the FTS networking library.")
+set(fts-network_LIB_DIR "${fts-network}/lib")
+set(fts-network_INCLUDE_DIR "${fts-network}/include")
+
 add_library(fts-net STATIC IMPORTED)
 if(MSVC)
     set_target_properties( fts-net PROPERTIES IMPORTED_LOCATION_DEBUG ${fts-network_LIB_DIR}/Debug/fts-net_d.lib)
@@ -65,15 +68,6 @@ if(MSVC)
     source_group( Checksum FILES ${CHECKSUM})
     source_group( Header FILES ${HDR})
     source_group( Source FILES ${src})
-else()
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        add_definitions(-D_DEBUG)
-    endif()
-endif()
-
-# Compiler-dependent and build-depended flags:
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 endif()
 
 # The configuration settings.
@@ -107,27 +101,21 @@ set(CHAT_MAX_CHANS_PER_USER "3" CACHE STRING "The maximum amount of channels a u
 
 configure_file("${fts-server_SOURCE_DIR}/config.h.in" "config.h" ESCAPE_QUOTES)
 
-# Add additional source directories.
-include_directories(${fts-server_SOURCE_DIR}
-                    ${fts-server_BINARY_DIR}
-                    ${MYSQL_INCLUDE_DIR}
-                   )
-
-if(MSVC)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_WINSOCK_DEPRECATED_NO_WARNINGS)
-    # The findpackage doesn't work very well for VS2015.
-    # The libmysql.lib must be loaded first otherwise we get linker errors.
-    link_directories( ${MYSQL_LIBRARIES_DIR}  )	
-    set( MYSQL_LIBRARIES "libmysql.lib;mysqlclient.lib" )
-endif(MSVC)
-
 # The compiling process. #
 ##########################
-
 add_executable(fts-server ${src} ${HDR} ${CHECKSUM})
+if(MSVC)
+    target_compile_definitions(fts-server PRIVATE EHsc _CRT_SECURE_NO_WARNINGS _WINSOCK_DEPRECATED_NO_WARNINGS)
+endif(MSVC)
+if(CMAKE_COMPILER_IS_GNUCXX)
+    add_compile_options(Wall)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_compile_definitions(fts-server PRIVATE _DEBUG)
+    endif()
+endif()
+target_include_directories(fts-server PRIVATE ${fts-server_SOURCE_DIR} ${fts-server_BINARY_DIR} ${MYSQL_INCLUDE_DIR} ${fts-network_INCLUDE_DIR})
 set_property(TARGET fts-server PROPERTY CXX_STANDARD 14)
 set_property(TARGET fts-server PROPERTY CXX_STANDARD_REQUIRED ON)
-
 target_link_libraries(fts-server fts-net ${MYSQL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 install(TARGETS fts-server DESTINATION bin)
