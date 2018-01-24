@@ -3,8 +3,8 @@
 #include <list>
 #include <string>
 #include <cstdint>
+#include <mutex>
 
-#include "Mutex.h"
 #include "Singleton.h"
 
 namespace FTSSrv2 {
@@ -38,7 +38,7 @@ namespace FTSSrv2 {
         std::uint32_t countUserChannels(const std::string &in_sUserName);
 
         std::list<Channel *>m_lpChannels; ///< This list contains all existing channels.
-        Mutex m_mutex; ///< Mutex for accessing me.
+        std::recursive_mutex m_mutex;     ///< Mutex for accessing me.
     };
 
 }

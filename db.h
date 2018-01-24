@@ -1,7 +1,7 @@
 #ifndef D_DB_H
 #define D_DB_H
 
-#include "Mutex.h"
+#include <mutex>
 
 #include <list>
 #include <vector>
@@ -17,7 +17,7 @@ class DataBase {
 private:
     db_ptr *m_pSQL;
 
-    Mutex m_mutex;
+    std::recursive_mutex m_mutex;
 
     std::string m_psTblUsrFields[DSRV_TBL_USR_COUNT];
     std::string m_psTblChansFields[DSRV_TBL_CHANS_COUNT];

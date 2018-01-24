@@ -8,7 +8,7 @@ using namespace FTSSrv2;
 
 int FTSSrv2::GameManager::addGame( FTSSrv2::Game *in_pGame )
 {
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
 
     m_lpGames.push_back(in_pGame);
 
@@ -18,7 +18,7 @@ int FTSSrv2::GameManager::addGame( FTSSrv2::Game *in_pGame )
 int FTSSrv2::GameManager::remGame(FTSSrv2::Game *in_pGame)
 {
     // If the game has been canceled, remove it from the list.
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     m_lpGames.remove(in_pGame);
 
     delete in_pGame;
@@ -35,7 +35,7 @@ int FTSSrv2::GameManager::startGame(FTSSrv2::Game *in_pGame)
 
 FTSSrv2::Game *FTSSrv2::GameManager::findGame( const std::string &in_sName )
 {
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
 
     for( auto i : m_lpGames ) {
         if(i->getName() == in_sName) {
@@ -48,7 +48,7 @@ FTSSrv2::Game *FTSSrv2::GameManager::findGame( const std::string &in_sName )
 
 FTSSrv2::Game *FTSSrv2::GameManager::findGameByHost(const std::string &in_sHost)
 {
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
 
     for( auto i : m_lpGames ) {
         if(i->getHost() == in_sHost) {
@@ -64,7 +64,7 @@ int FTSSrv2::GameManager::writeListToPacket(Packet *in_pPacket)
     if(!in_pPacket)
         return -1;
 
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     for( auto i : m_lpGames) {
         i->addToLstPacket(in_pPacket);
     }

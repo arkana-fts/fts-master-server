@@ -100,7 +100,7 @@ int FTSSrv2::ChannelManager::loadChannels(void)
 
 int FTSSrv2::ChannelManager::saveChannels( void )
 {
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     for( const auto& i : m_lpChannels ) {
         i->save();
     }
@@ -123,7 +123,7 @@ FTSSrv2::Channel *FTSSrv2::ChannelManager::createChannel(const string & in_sName
 
     FTSSrv2::Channel *pChannel = new FTSSrv2::Channel(param, Server::getSingletonPtr()->getDb());
 
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     m_lpChannels.push_back(pChannel);
     pChannel->save(); // Update the database right now!
 
@@ -132,7 +132,7 @@ FTSSrv2::Channel *FTSSrv2::ChannelManager::createChannel(const string & in_sName
 
 int FTSSrv2::ChannelManager::removeChannel(FTSSrv2::Channel *out_pChannel, const string &in_sWhoWantsIt)
 {
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     for(const auto& i : m_lpChannels) {
         if(i == out_pChannel) {
             // Found! remove it from DB and manager, if we have the rights!
@@ -156,7 +156,7 @@ std::list<FTSSrv2::Channel *> FTSSrv2::ChannelManager::getPublicChannels()
 {
     std::list<FTSSrv2::Channel *>lpPubChannels;
 
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     for( const auto& i : m_lpChannels ) {
         if( i->isPublic( ) ) {
             lpPubChannels.push_back(i);
@@ -168,7 +168,7 @@ std::list<FTSSrv2::Channel *> FTSSrv2::ChannelManager::getPublicChannels()
 
 FTSSrv2::Channel *FTSSrv2::ChannelManager::findChannel(const string & in_sName)
 {
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     for(const auto& i : m_lpChannels) {
         // "Pompei2's ChanNel" is the same as "pOmpei2's chAnnEl"
         if(ieq( i->getName(), in_sName)) {
@@ -181,7 +181,7 @@ FTSSrv2::Channel *FTSSrv2::ChannelManager::findChannel(const string & in_sName)
 
 std::uint32_t FTSSrv2::ChannelManager::countUserChannels(const string &in_sUserName)
 {
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     std::uint32_t nChans = (std::uint32_t) std::count_if( std::begin( m_lpChannels ), std::end( m_lpChannels ), [in_sUserName] ( Channel* pChan ){ return ieq(pChan->getAdmin(),in_sUserName); } );
     return  nChans;
 }
@@ -190,7 +190,7 @@ std::list<string> FTSSrv2::ChannelManager::getUserChannels(const string &in_sUse
 {
     std::list<string> sChans;
 
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     for(const auto& i : m_lpChannels) {
         if(ieq( i->getAdmin(), in_sUserName)) {
             sChans.push_back(i->getName());

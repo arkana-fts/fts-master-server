@@ -2,8 +2,8 @@
 
 #include <map>
 #include <string>
+#include <mutex>
 
-#include "Mutex.h"
 #include "ICLientsManager.h"
 
 namespace FTSSrv2 {
@@ -28,7 +28,7 @@ namespace FTSSrv2 {
     private:
 
         std::map<std::string, Client *>m_mClients;
-        Mutex m_mutex;
+        std::recursive_mutex m_mutex;
     };
 
 }

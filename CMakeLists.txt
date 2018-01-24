@@ -59,7 +59,7 @@ set(src main.cpp Server.cpp channel.cpp client.cpp db.cpp db_build.cpp dummy_typ
    )
 set(HDR constants.h Server.h channel.h client.h db.h dummy_types.h game.h  
         ClientsManager.h IClientsManager.h ChannelManager.h GameManager.h
-        Singleton.h GetOpt.h Mutex.h
+        Singleton.h GetOpt.h
    ) 
    
 set( CHECKSUM ./checksum/sha2.cpp ./checksum/md5.cpp )

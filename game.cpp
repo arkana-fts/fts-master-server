@@ -53,14 +53,14 @@ FTSSrv2::Game::~Game( )
 
 void FTSSrv2::Game::playerJoined(const string &in_sPlayer)
 {
-    Lock l(m_mutex);
+    lock_guard<recursive_mutex> l(m_mutex);
     m_lpPlayers.remove(in_sPlayer); // Prohibit double entries.
     m_lpPlayers.push_back(in_sPlayer);
 }
 
 void FTSSrv2::Game::playerLeft(const string &in_sPlayer)
 {
-    Lock l(m_mutex);
+    lock_guard<recursive_mutex> l(m_mutex);
     m_lpPlayers.remove(in_sPlayer);
 }
 
@@ -69,7 +69,7 @@ int FTSSrv2::Game::addToInfoPacket(Packet *out_pPacket)
     if(!out_pPacket)
         return -1;
 
-    Lock l(m_mutex);
+    lock_guard<recursive_mutex> l(m_mutex);
     out_pPacket->append(m_sIP);
     out_pPacket->append(m_usPort);
     out_pPacket->append(m_sHost);
@@ -97,7 +97,7 @@ int FTSSrv2::Game::addToLstPacket(Packet *out_pPacket)
     if(!out_pPacket)
         return -1;
 
-    Lock l(m_mutex);
+    lock_guard<recursive_mutex> l(m_mutex);
     out_pPacket->append(m_sName);
     out_pPacket->append(m_sMapName);
     out_pPacket->append(m_bStarted ? (uint8_t)1 : (uint8_t)0);

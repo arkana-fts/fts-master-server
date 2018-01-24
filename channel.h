@@ -2,8 +2,7 @@
 
 #include <list>
 #include <string>
-
-#include "Mutex.h"
+#include <mutex>
 #include "ChannelManager.h"
 
 namespace FTS {
@@ -25,7 +24,7 @@ private:
     std::list<std::string>m_lsOperators;///< The names of the operators of this channel.
     std::list<Client *>m_lpUsers;       ///< The users that are currently in this channel.
 
-    Mutex m_mutex;                      ///< Mutex for accessing me.
+    std::recursive_mutex m_mutex;       ///< Mutex for accessing me.
     DataBase* m_pDataBase = nullptr;    ///< Access the database.
 
 public:

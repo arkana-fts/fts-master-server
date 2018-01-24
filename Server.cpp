@@ -75,7 +75,7 @@ std::string FTSSrv2::Server::tryFile(const std::string &in_sFilename, const std:
 size_t FTSSrv2::Server::addPlayer()
 {
     // Modify the statistics.
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
 
     m_nPlayers++;
     std::ofstream of(m_sPlayersFile.c_str(), std::ios_base::trunc);
@@ -89,7 +89,7 @@ size_t FTSSrv2::Server::addPlayer()
 size_t FTSSrv2::Server::remPlayer()
 {
     // Modify the statistics.
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     m_nPlayers--;
     std::ofstream of(m_sPlayersFile.c_str(), std::ios_base::trunc);
     if(of) {
@@ -102,7 +102,7 @@ size_t FTSSrv2::Server::remPlayer()
 size_t FTSSrv2::Server::addGame()
 {
     // Modify the statistics.
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     m_nGames++;
     std::ofstream of(m_sGamesFile.c_str(), std::ios_base::trunc);
     if(of) {
@@ -115,7 +115,7 @@ size_t FTSSrv2::Server::addGame()
 size_t FTSSrv2::Server::remGame()
 {
     // Modify the statistics.
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     m_nGames--;
     std::ofstream of(m_sGamesFile.c_str(), std::ios_base::trunc);
     if(of) {
@@ -137,7 +137,7 @@ FTSSrv2::IClientsManager* FTSSrv2::Server::getClientsManager()
 
 void FTSSrv2::Server::clearStats()
 {
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     m_totalPackets.clear();
 }
 
@@ -148,5 +148,3 @@ void FTSSrv2::Server::addStats( PacketStats stats)
         m_totalPackets[it.first].second += it.second.second;
     }
 }
-
-

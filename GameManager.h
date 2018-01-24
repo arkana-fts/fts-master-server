@@ -4,8 +4,8 @@
 #include <list>
 #include <string>
 #include <cstdint>
+#include <mutex>
 
-#include "Mutex.h"
 #include "Singleton.h"
 
 namespace FTS {
@@ -19,8 +19,8 @@ namespace FTSSrv2 {
     class GameManager : public FTS::Singleton<GameManager>
     {
     private:
-        std::list<Game *>m_lpGames; ///< This list contains all existing games.
-        Mutex m_mutex; ///< Mutex for accessing me.
+        std::list<Game *>m_lpGames;     ///< This list contains all existing games.
+        std::recursive_mutex m_mutex;   ///< Mutex for accessing me.
 
     public:
         GameManager() = default;

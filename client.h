@@ -5,7 +5,6 @@
 #include <map>
 
 #include <connection.h>
-#include "Mutex.h"
 #include "IClientsManager.h"
 
 namespace FTS {
@@ -83,7 +82,6 @@ private:
     std::string m_sPassMD5;                     ///< The MD5 encoded password of the user that is logged on.
     Game *m_pMyGame = nullptr;                  ///< The game I have started or I am in. NULL else.
     Channel *m_pMyChannel = nullptr;            ///< The chat channel the player is currently in.
-    Mutex m_mutex;                              ///< Protect the sendPacket, it is used by other clients to send a msg directly.
     FTS::Connection *m_pConnection = nullptr;   ///< The connection to my client.
     DataBase* m_DataBase = nullptr;             ///< The data base object.
     IClientsManager* m_pClientManager = nullptr;///< The client manager interface to de-/register it self.

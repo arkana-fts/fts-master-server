@@ -3,9 +3,9 @@
 #include <list>
 #include <string>
 #include <cstdint>
+#include <mutex>
 
 #include "dummy_types.h"
-#include "Mutex.h"
 
 
 namespace FTS {
@@ -52,7 +52,7 @@ private:
 
     std::list<std::string> m_lpPlayers;   ///< The players that are currently in this game.
 
-    Mutex m_mutex;  ///< A mutex to protect myself.
+    std::recursive_mutex m_mutex;   ///< A mutex to protect myself.
 };
 
 } // namespace FTSSrv2

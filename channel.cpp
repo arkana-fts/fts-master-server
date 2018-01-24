@@ -43,7 +43,7 @@ int FTSSrv2::Channel::join(Client *in_pUser)
 
     // Add the user to the users list.
     {
-        Lock l(m_mutex);
+        std::lock_guard<std::recursive_mutex> l(m_mutex);
         m_lpUsers.push_back(in_pUser);
 
         // Tell everybody that somebody joined.
@@ -68,7 +68,7 @@ int FTSSrv2::Channel::quit(Client *in_pUser)
 
     // Remove the user from the list.
     {
-        Lock l(m_mutex);
+        std::lock_guard<std::recursive_mutex> l(m_mutex);
         m_lpUsers.remove(in_pUser);
 
         // Tell everybody that somebody left.
@@ -85,7 +85,7 @@ int FTSSrv2::Channel::quit(Client *in_pUser)
 
 int FTSSrv2::Channel::save()
 {
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
 
     // Create this channel from scratch.
     if( m_iID < 0 ) {
@@ -143,7 +143,7 @@ int FTSSrv2::Channel::op(const string & in_sUser, bool in_bOninit)
 
     // add to the operators list.
     {
-        Lock l(m_mutex);
+        std::lock_guard<std::recursive_mutex> l(m_mutex);
         m_lsOperators.push_back(in_sUser);
 
         if(!in_bOninit) {
@@ -171,7 +171,7 @@ int FTSSrv2::Channel::deop( const string & in_sUser )
 
     // remove from the operators list.
     {
-        Lock l(m_mutex);
+        std::lock_guard<std::recursive_mutex> l(m_mutex);
         m_lsOperators.remove(in_sUser);
 
         // Tell everybody that somebody Deop's, including to me.
@@ -189,7 +189,7 @@ int FTSSrv2::Channel::deop( const string & in_sUser )
 
 bool FTSSrv2::Channel::isop( const string & in_sUser )
 {
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     for(const auto& i : m_lsOperators) {
         if(in_sUser == i) {
             return true;
@@ -225,7 +225,7 @@ Packet FTSSrv2::Channel::makeSystemMessagePacket( const string &in_sMessageID )
 
 int FTSSrv2::Channel::sendPacketToAll( Packet *in_pPacket )
 {
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     for(const auto& i : m_lpUsers) {
         i->sendPacket(in_pPacket);
     }
@@ -240,7 +240,7 @@ int FTSSrv2::Channel::setMotto( const string & in_sMotto, const string & in_sUse
         return -20;
 
     {
-        Lock l(m_mutex);
+        std::lock_guard<std::recursive_mutex> l(m_mutex);
         m_sMotto = in_sMotto;
 
         // Tell everybody that somebody changed the motto, including to me.
@@ -307,7 +307,7 @@ int FTSSrv2::Channel::kick( const Client *in_pFrom, const string & in_sUser )
 
 Client *FTSSrv2::Channel::getUserIfPresent(const string &in_sUsername)
 {
-    Lock l(m_mutex);
+    std::lock_guard<std::recursive_mutex> l(m_mutex);
     for(const auto& pCli : m_lpUsers) {
         if(pCli->getNick() == in_sUsername) {
             return pCli;
